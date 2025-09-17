@@ -22,7 +22,6 @@ public class ChessPosition {
      */
     public int getRow() {
         return row;
-//        throw new RuntimeException("Not implemented");
     }
 
     /**
@@ -31,11 +30,10 @@ public class ChessPosition {
      */
     public int getColumn() {
         return col;
-//        throw new RuntimeException("Not implemented");
     }
 
     @Override
     public String toString() {
-        return String.format("%d,%d", row, col);
+        return String.format("[%d,%d]", row, col);
     }
 }
