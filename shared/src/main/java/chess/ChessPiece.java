@@ -1,7 +1,9 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Represents a single chess piece
@@ -61,10 +63,27 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
 //        throw new RuntimeException("Not implemented");
         ChessPiece piece = board.getPiece(myPosition);
+
         if  (piece.getPieceType() == PieceType.BISHOP){
-//            return BishopCalculator.PieceMoves(board, myPosition);
             return new BishopCalculator().PieceMoves(board, myPosition);
         }
+
+        else if (piece.getPieceType() == PieceType.ROOK) {
+            return new RookCalculator().PieceMoves(board, myPosition);
+        }
+
+        else if (piece.getPieceType() == PieceType.QUEEN) {
+            Collection<ChessMove> queenMoves = new BishopCalculator().PieceMoves(board, myPosition);
+            queenMoves.addAll(new RookCalculator().PieceMoves(board, myPosition));
+            return queenMoves;
+        }
+
+        else if (piece.getPieceType() == PieceType.KING) {
+            return ???;
+        }
+
+
+
         return List.of();
     }
 }
