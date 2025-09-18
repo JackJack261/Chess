@@ -45,4 +45,16 @@ public class ChessBoard {
     public void resetBoard() {
         throw new RuntimeException("Not implemented");
     }
+
+
+    // Checking to see if a move is in bounds
+
+    public Boolean isValidPosition(ChessPosition position) {
+        if (position.getRow() > 8 || position.getColumn() > 8 || position.getRow() < 1 || position.getColumn() < 1) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
 }

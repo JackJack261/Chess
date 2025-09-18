@@ -55,9 +55,16 @@ public class ChessPiece {
      * danger
      *
      * @return Collection of valid moves
+     *
+     * This is what returns all possible moves that I need to calculate
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
 //        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(myPosition);
+        if  (piece.getPieceType() == PieceType.BISHOP){
+//            return BishopCalculator.PieceMoves(board, myPosition);
+            return new BishopCalculator().PieceMoves(board, myPosition);
+        }
         return List.of();
     }
 }
