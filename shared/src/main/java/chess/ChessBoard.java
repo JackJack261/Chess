@@ -23,7 +23,6 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-//        throw new RuntimeException("Not implemented");
         squares[position.getRow()-1][position.getColumn()-1] = piece;
     }
 
@@ -36,7 +35,6 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-//        throw new RuntimeException("Not implemented");
         return squares[position.getRow()-1][position.getColumn()-1];
 
     }
@@ -46,7 +44,6 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-//        squares[0][0] = new ChessPiece(ChessGame.TeamColor.WHITE, ChessPiece.PieceType.ROOK);
 
         // Add pawns
         for (int col = 0; col < 8; col++) {
