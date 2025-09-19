@@ -79,10 +79,16 @@ public class ChessPiece {
         }
 
         else if (piece.getPieceType() == PieceType.KING) {
-            return ???;
+            return new KingCalculator().PieceMoves(board, myPosition);
         }
 
+        else if (piece.getPieceType() == PieceType.KNIGHT) {
+            return new KnightCalculator().PieceMoves(board, myPosition);
+        }
 
+        else if (piece.getPieceType() == PieceType.PAWN) {
+            return new PawnCalculator().PieceMoves(board, myPosition);
+        }
 
         return List.of();
     }
