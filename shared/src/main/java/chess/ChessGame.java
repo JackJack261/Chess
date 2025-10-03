@@ -16,12 +16,32 @@ public class ChessGame {
     private TeamColor team;
     private ChessBoard board;
 
-    private ChessPiece capturedPiece = null;
-    private ChessPiece movedPiece = null;
+    private final java.util.Stack<MoveRecord> moveHistory = new java.util.Stack<>();
+
+
 
     public ChessGame() {
 
     }
+
+
+    private static class MoveRecord {
+        ChessMove move;
+        ChessPiece movedPiece;
+        ChessPiece capturedPiece;
+        TeamColor previousTurn;
+
+        MoveRecord(ChessMove move, ChessPiece movedPiece, ChessPiece capturedPiece, TeamColor previousTurn) {
+            this.move = move;
+            this.movedPiece = movedPiece;
+            this.capturedPiece = capturedPiece;
+            this.previousTurn = previousTurn;
+        }
+    }
+
+
+
+
 
     /**
      * @return Which team's turn it is
@@ -67,11 +87,7 @@ public class ChessGame {
 
         for (ChessMove move : candidateMoves) {
             // make move
-            try {
-                makeMove(move);
-            } catch (InvalidMoveException e) {
-                throw new RuntimeException(e);
-            }
+            makeMoveRaw(move);
             // check for check
             if (!isInCheck(piece.getTeamColor())) {
                 validMoves.add(move);
@@ -84,6 +100,26 @@ public class ChessGame {
 
     }
 
+
+    private void makeMoveRaw(ChessMove move) {
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+        ChessPiece captured = board.getPiece(move.getEndPosition());
+
+        MoveRecord record = new MoveRecord(move, piece, captured, team);
+        moveHistory.push(record);
+
+        board.removePiece(move.getStartPosition());
+
+        if (move.getPromotionPiece() != null) {
+            piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+        }
+
+        board.addPiece(move.getEndPosition(), piece);
+
+        team = (team == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+    }
+
+
     /**
      * Makes a move in a chess game
      *
@@ -91,60 +127,37 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-//        throw new RuntimeException("Not implemented");
-        ChessPiece piece = board.getPiece(move.getStartPosition());
-        ChessGame.TeamColor myColor = board.getPiece(move.getStartPosition()).getTeamColor();
 
-        if (piece == null) {
-            throw new InvalidMoveException("No piece at start position");
-        }
-
-        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
-
-        if (!validMoves.contains(move)) {
+        Collection<ChessMove> legalMoves = validMoves(move.getStartPosition());
+        if (!legalMoves.contains(move)) {
             throw new InvalidMoveException("Illegal move");
         }
-
-        // store piece
-        movedPiece = piece;
-
-        // remove piece from start position
-        board.removePiece(move.getStartPosition());
-
-        // capture piece
-        if (board.getPiece(move.getEndPosition()) != null && board.getPiece(move.getEndPosition()).getTeamColor() != myColor ) {
-            // store captured piece
-            capturedPiece = board.getPiece(move.getEndPosition());
-            // remove captured piece
-            board.removePiece(move.getEndPosition());
-        }
-
-
-        // promote piece
-        if (move.getPromotionPiece() != null) {
-            piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
-        }
-
-
-        // add piece to new position.
-        board.addPiece(move.getEndPosition(), piece);
-
-        team = (team == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
-
-
+        makeMoveRaw(move);
     }
 
 
     public void unmakeMove(ChessMove move) {
 
-        // reset moved piece
-        board.removePiece(move.getEndPosition());
-        board.addPiece(move.getStartPosition(), movedPiece);
-
-        // add captured piece back to
-        if (capturedPiece != null) {
-            board.addPiece(move.getEndPosition(), capturedPiece);
+        if (moveHistory.isEmpty()) {
+            throw new IllegalStateException("No move to undo");
         }
+
+        MoveRecord record = moveHistory.pop();
+
+        // remove whatever is currently at the end position
+        board.removePiece(record.move.getEndPosition());
+
+        // restore the original piece at start position
+        board.addPiece(record.move.getStartPosition(), record.movedPiece);
+
+        // restore captured piece if any
+        if (record.capturedPiece != null) {
+            board.addPiece(record.move.getEndPosition(), record.capturedPiece);
+        }
+
+        // restore the previous turn
+        team = record.previousTurn;
+
     }
 
 
@@ -233,18 +246,17 @@ public class ChessGame {
         return board;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
         ChessGame chessGame = (ChessGame) o;
-        return team == chessGame.team && Objects.equals(board, chessGame.board);
+        return team == chessGame.team && Objects.equals(board, chessGame.board) && Objects.equals(moveHistory, chessGame.moveHistory);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(team, board);
+        return Objects.hash(team, board, moveHistory);
     }
 }
