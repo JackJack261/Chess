@@ -60,7 +60,25 @@ public class ChessGame {
         if (piece == null) {
             return List.of();
         }
-        Collection<ChessMove> validMoves = board.getPiece(startPosition).pieceMoves(board, startPosition);
+        Collection<ChessMove> candidateMoves = board.getPiece(startPosition).pieceMoves(board, startPosition);
+        Collection<ChessMove> validMoves = new ArrayList<>();
+
+        for (ChessMove move : candidateMoves) {
+            // make move
+            try {
+                makeMove(move);
+            } catch (InvalidMoveException e) {
+                throw new RuntimeException(e);
+            }
+            // check for check
+            if (!isInCheck(piece.getTeamColor())) {
+                validMoves.add(move);
+            }
+            // unmake move
+            unmakeMove(move);
+        }
+
+        return validMoves;
 
     }
 
@@ -71,8 +89,36 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+//        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(move.getStartPosition());
+        if (piece == null) {
+            throw new InvalidMoveException("No piece at start position");
+        }
+
+        Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
+        if (!validMoves.contains(move)) {
+            throw new InvalidMoveException("Illegal move");
+        }
+
+        board.removePiece(move.getStartPosition());
+
+        if (move.getPromotionPiece() != null) {
+            piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+        }
+
+        board.addPiece(move.getEndPosition(), piece);
+
+        team = (team == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
+
+
     }
+
+
+    public void unmakeMove(ChessMove move) {
+        throw new RuntimeException("Not Implemented");
+    }
+
+
 
     /**
      * Determines if the given team is in check
