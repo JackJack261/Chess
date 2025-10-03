@@ -92,6 +92,7 @@ public class ChessGame {
             if (!isInCheck(piece.getTeamColor())) {
                 validMoves.add(move);
             }
+
             // unmake move
             unmakeMove(move);
         }
@@ -216,7 +217,28 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+
+        // check to see if king is in check
+        if (!isInCheck(teamColor)) {
+            return false;
+        }
+
+        for (int row = 1; row < 9; row++) {
+            for (int col = 1; col < 9; col++) {
+                ChessPosition nextPosition = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(nextPosition);
+                if (piece == null || piece.getTeamColor() != teamColor) {
+                    continue;
+                }
+
+                Collection<ChessMove> moves = validMoves(nextPosition);
+                if (!moves.isEmpty()) {
+                    return false; // not checkmate
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -227,7 +249,25 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        // check to see if king is in check
+        if (!isInCheck(teamColor)) {
+            for (int row = 1; row < 9; row++) {
+                for (int col = 1; col < 9; col++) {
+                    ChessPosition nextPosition = new ChessPosition(row, col);
+                    ChessPiece piece = board.getPiece(nextPosition);
+
+                    if (piece == null || piece.getTeamColor() != teamColor) {
+                        continue;
+                    }
+
+                    Collection<ChessMove> moves = validMoves(nextPosition);
+                    if (moves.isEmpty()) {
+                        return true; // stalemate
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /**
