@@ -14,8 +14,10 @@ import java.util.Objects;
 public class ChessGame {
 
     private TeamColor team;
-
     private ChessBoard board;
+
+    private ChessPiece capturedPiece = null;
+    private ChessPiece movedPiece = null;
 
     public ChessGame() {
 
@@ -91,21 +93,40 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
 //        throw new RuntimeException("Not implemented");
         ChessPiece piece = board.getPiece(move.getStartPosition());
+        ChessGame.TeamColor myColor = board.getPiece(move.getStartPosition()).getTeamColor();
+
         if (piece == null) {
             throw new InvalidMoveException("No piece at start position");
         }
 
         Collection<ChessMove> validMoves = validMoves(move.getStartPosition());
+
         if (!validMoves.contains(move)) {
             throw new InvalidMoveException("Illegal move");
         }
 
+        // store piece
+        movedPiece = piece;
+
+        // remove piece from start position
         board.removePiece(move.getStartPosition());
 
+        // capture piece
+        if (board.getPiece(move.getEndPosition()) != null && board.getPiece(move.getEndPosition()).getTeamColor() != myColor ) {
+            // store captured piece
+            capturedPiece = board.getPiece(move.getEndPosition());
+            // remove captured piece
+            board.removePiece(move.getEndPosition());
+        }
+
+
+        // promote piece
         if (move.getPromotionPiece() != null) {
             piece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
         }
 
+
+        // add piece to new position.
         board.addPiece(move.getEndPosition(), piece);
 
         team = (team == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE);
@@ -115,8 +136,18 @@ public class ChessGame {
 
 
     public void unmakeMove(ChessMove move) {
-        throw new RuntimeException("Not Implemented");
+
+        // reset moved piece
+        board.removePiece(move.getEndPosition());
+        board.addPiece(move.getStartPosition(), movedPiece);
+
+        // add captured piece back to
+        if (capturedPiece != null) {
+            board.addPiece(move.getEndPosition(), capturedPiece);
+        }
     }
+
+
 
 
 
