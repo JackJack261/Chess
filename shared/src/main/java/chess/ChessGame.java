@@ -132,6 +132,11 @@ public class ChessGame {
         if (!legalMoves.contains(move)) {
             throw new InvalidMoveException("Illegal move");
         }
+
+        if (board.getPiece(move.getStartPosition()).getTeamColor() != team) {
+            throw new InvalidMoveException("Invalid Make Move Out Of Turn");
+        }
+
         makeMoveRaw(move);
     }
 
@@ -159,8 +164,6 @@ public class ChessGame {
         team = record.previousTurn;
 
     }
-
-
 
 
 
