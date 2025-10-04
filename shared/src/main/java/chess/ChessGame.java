@@ -257,25 +257,30 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         // check to see if king is in check
-        if (!isInCheck(teamColor)) {
-            Collection<ChessMove> moves = null;
-            for (int row = 1; row < 9; row++) {
-                for (int col = 1; col < 9; col++) {
-                    ChessPosition nextPosition = new ChessPosition(row, col);
-                    ChessPiece piece = board.getPiece(nextPosition);
 
-                    if (piece == null || piece.getTeamColor() != teamColor) {
-                        continue;
-                    }
-                    if (piece.getPieceType() == ChessPiece.PieceType.KING) {
-                        moves = validMoves(nextPosition);
-                        return moves.isEmpty(); // at least one legal move exists
-                    }
+
+        if (isInCheck(teamColor)) {
+            return false;
+        }
+
+        // Check every piece on the board
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = board.getPiece(position);
+
+                // skip pieces that are null or enemy color
+                if (piece == null || piece.getTeamColor() != teamColor) {
+                    continue;
+                }
+                // add validMoves to a new collection and test if it is empty
+                Collection<ChessMove> moves = validMoves(position);
+                if (!moves.isEmpty()) {
+                    return false;
                 }
             }
         }
-
-        return false;
+        return true;
     }
 
     /**
