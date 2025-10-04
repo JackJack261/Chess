@@ -21,7 +21,9 @@ public class ChessGame {
 
 
     public ChessGame() {
-
+        this.team = TeamColor.WHITE; // default start
+        this.board = new ChessBoard();
+        this.board.resetBoard();
     }
 
 
@@ -88,6 +90,7 @@ public class ChessGame {
         for (ChessMove move : candidateMoves) {
             // make move
             makeMoveRaw(move);
+
             // check for check
             if (!isInCheck(piece.getTeamColor())) {
                 validMoves.add(move);
@@ -96,6 +99,10 @@ public class ChessGame {
             // unmake move
             unmakeMove(move);
         }
+
+        // debug moves
+        System.out.println("Checking piece at " + board.getPiece(startPosition) + ", valid moves: " + validMoves.size());
+
 
         return validMoves;
 
@@ -197,7 +204,7 @@ public class ChessGame {
                 ChessPosition enemyPosition = new ChessPosition(row, col);
                 ChessPiece enemyPiece = board.getPiece(enemyPosition);
                 if (enemyPiece != null && enemyPiece.getTeamColor() != teamColor) {
-                    enemyMoves = enemyPiece.pieceMoves(board, enemyPosition);        // Need to change this to validMoves
+                    enemyMoves = enemyPiece.pieceMoves(board, enemyPosition);
                 }
                 for (ChessMove move : enemyMoves) {
                     if (move.getEndPosition().equals(kingPosition)) {
@@ -251,6 +258,7 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         // check to see if king is in check
         if (!isInCheck(teamColor)) {
+            Collection<ChessMove> moves = null;
             for (int row = 1; row < 9; row++) {
                 for (int col = 1; col < 9; col++) {
                     ChessPosition nextPosition = new ChessPosition(row, col);
@@ -259,14 +267,14 @@ public class ChessGame {
                     if (piece == null || piece.getTeamColor() != teamColor) {
                         continue;
                     }
-
-                    Collection<ChessMove> moves = validMoves(nextPosition);
-                    if (moves.isEmpty()) {
-                        return true; // stalemate
+                    if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+                        moves = validMoves(nextPosition);
+                        return moves.isEmpty(); // at least one legal move exists
                     }
                 }
             }
         }
+
         return false;
     }
 
@@ -302,4 +310,5 @@ public class ChessGame {
     public int hashCode() {
         return Objects.hash(team, board, moveHistory);
     }
+
 }
