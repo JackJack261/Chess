@@ -101,7 +101,7 @@ public class ChessGame {
         }
 
         // debug moves
-        System.out.println("Checking piece at " + board.getPiece(startPosition) + ", valid moves: " + validMoves.size());
+//        System.out.println("Checking piece at " + board.getPiece(startPosition) + ", valid moves: " + validMoves.size());
 
 
         return validMoves;
