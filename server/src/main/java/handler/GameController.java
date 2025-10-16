@@ -1,12 +1,19 @@
 package handler;
 
+import requestsAndResults.*;
+
+import com.google.gson.Gson;
 import io.javalin.http.Context;
+import service.Service;
 
 public class GameController {
 
-    // Example endpoint method
+
+    private final Service service = new Service();
+
+
     public void createGame(Context ctx) {
-        // For now, just respond to test wiring
+        //example game created
         ctx.result("Game created!");
     }
 
@@ -15,5 +22,12 @@ public class GameController {
         ctx.result("Here is a list of all games:");
     }
 
+    public void registerUser(Context ctx) {
+        RegisterRequest registerRequest = new Gson().fromJson(ctx.body(), RegisterRequest.class);
+        RegisterResult registerResult = service.register(registerRequest);
+
+        ctx.json(new Gson().toJson(registerResult));
+
+    }
 
 }

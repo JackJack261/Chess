@@ -1,6 +1,7 @@
 package server;
 
 import handler.GameController;
+import handler.UserController;
 import io.javalin.*;
 
 public class Server {
@@ -15,6 +16,7 @@ public class Server {
         javalin.get("/hello", ctx -> ctx.result("Hello world!"));
         javalin.post("/game", gameController::createGame);
         javalin.get("/game", gameController::listGames);
+        javalin.post("/user", gameController::registerUser);
 
     }
 
