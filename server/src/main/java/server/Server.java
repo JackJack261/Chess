@@ -1,5 +1,6 @@
 package server;
 
+import dataaccess.UserDAO;
 import handler.GameController;
 import handler.UserController;
 import io.javalin.*;
@@ -9,7 +10,10 @@ public class Server {
     private final Javalin javalin;
     private final GameController gameController = new GameController();
 
+
     public Server() {
+
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
