@@ -4,6 +4,7 @@ import dataaccess.*;
 import models.AuthData;
 import models.UserData;
 import requestsAndResults.*;
+import exceptions.AlreadyTakenException;
 
 import java.util.UUID;
 
@@ -23,11 +24,7 @@ public class Service {
         String username = registerRequest.username();
 
 
-        if (userDAO.getUser(username) != null) {
-            // TODO: make this in its own package
-//            throw AlreadyTakenException;
-        }
-        else {
+        if (userDAO.getUser(username) == null) {
             //available
             String authToken = generateToken();
 
@@ -39,6 +36,11 @@ public class Service {
             authDAO.createAuth(authData);
 
             return new RegisterResult(registerRequest.username(), authToken);
+
+
+        }
+        else {
+            throw new AlreadyTakenException("The username: '" + username + "' is already taken.");
         }
     }
 
