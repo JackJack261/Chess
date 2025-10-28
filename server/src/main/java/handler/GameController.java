@@ -15,11 +15,6 @@ public class GameController {
     private final Service service = new Service();
 
 
-    public void createGame(Context ctx) {
-        //example game created
-        ctx.result("Game created!");
-    }
-
     public void listGames(Context ctx) {
         //example list
         ctx.result("Here is a list of all games:");
@@ -108,6 +103,47 @@ public class GameController {
             ctx.json(new Gson().toJson(errorResponse));
         }
 
+
+    }
+
+
+    // Create Game
+    public void createGame(Context ctx) {
+        String authToken = ctx.header("Authorization");
+        record CreateRequestBody(String gameName) {}
+
+        CreateRequestBody body = new Gson().fromJson(ctx.body(), CreateRequestBody.class);
+        String gameName = body.gameName();
+
+        CreateRequest createRequest = new CreateRequest(authToken, gameName);
+
+        try {
+            CreateResult createResult = service.createGame(createRequest);
+
+            ctx.status(200);
+            ctx.json(new Gson().toJson(createResult));
+        } catch (IncorrectAuthTokenException e) {
+            ctx.status(401);
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+
+        } catch (AlreadyExistsException e) {
+            ctx.status(400);
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+
+        } catch (InvalidNameException e) {
+            ctx.status(400);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        }
 
     }
 

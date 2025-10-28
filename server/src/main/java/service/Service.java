@@ -1,7 +1,9 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.*;
 import models.AuthData;
+import models.GameData;
 import models.UserData;
 import requestsAndResults.*;
 import exceptions.*;
@@ -91,6 +93,31 @@ public class Service {
 
     }
 
+
+    public CreateResult createGame(CreateRequest createRequest) throws IncorrectAuthTokenException, AlreadyExistsException, InvalidNameException{
+        String authToken = createRequest.authToken();
+        String gameName = createRequest.gameName();
+
+        if (authToken == null || authDAO.getAuth(authToken) == null) {
+            // no authToken or incorrect authToken
+            throw new IncorrectAuthTokenException("Invalid Auth Token");
+        }
+        else if (gameName == null) {
+            throw new InvalidNameException("Invalid Game Name");
+        }
+        else if (gameDAO.getGame(gameName) != null) {
+            throw new AlreadyExistsException("Game '" + gameName + "' already exists.");
+        }
+        else {
+            int gameID = generateID();
+            String whiteUsername = authDAO.getAuth(authToken).username();
+            GameData gameData = new GameData(gameID, whiteUsername, null, gameName, new ChessGame());
+            gameDAO.createGame(gameData);
+
+            return new CreateResult(gameID);
+        }
+    }
+
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
 
         userDAO.removeAll();
@@ -104,6 +131,15 @@ public class Service {
     public static String generateToken() {
         return UUID.randomUUID().toString();
     }
+
+
+    private static int idCounter = 1;
+
+    public static synchronized int generateID()
+    {
+        return idCounter++;
+    }
+
 
 
 //    public LoginResult login(LoginRequest loginRequest) {}

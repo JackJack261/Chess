@@ -12,12 +12,12 @@ public class GameDAO {
 
     // createGame
     public void createGame(GameData gameData) {
-        gameDatabase.put(String.valueOf(gameData.gameID()), gameData);
+        gameDatabase.put(gameData.gameName(), gameData);
     }
 
     // getGame
-    public GameData getGame(int gameID) {
-        return gameDatabase.get(String.valueOf(gameID));
+    public GameData getGame(String gameName) {
+        return gameDatabase.get(gameName);
     }
 
     // listGames
@@ -26,8 +26,8 @@ public class GameDAO {
     }
 
     // updateGame
-    public void updateGame(int gameID, GameData updatedGame) {
-        gameDatabase.replace(String.valueOf(gameID), gameDatabase.get(String.valueOf(gameID)), updatedGame);
+    public void updateGame(String gameName, GameData updatedGame) {
+        gameDatabase.replace(gameName, gameDatabase.get(gameName), updatedGame);
     }
 
     public void removeAll() {
