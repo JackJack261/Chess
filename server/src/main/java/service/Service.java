@@ -75,7 +75,21 @@ public class Service {
 
     }
 
+    public LogoutResult logout(LogoutRequest logoutRequest) throws IncorrectAuthTokenException {
+        String authToken = logoutRequest.authToken();
 
+        if (authToken != null && authDAO.getAuth(authToken) != null) {
+            // logout
+            authDAO.deleteAuth(authToken);
+
+            return new LogoutResult();
+
+        }
+        else {
+            throw new IncorrectAuthTokenException("Invalid Auth Token");
+        }
+
+    }
 
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
 

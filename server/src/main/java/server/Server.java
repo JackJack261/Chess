@@ -30,7 +30,9 @@ public class Server {
         // Logout User
         javalin.delete("/session", gameController::logoutUser);
 
+        // Create Game
         javalin.post("/game", gameController::createGame);
+
         javalin.get("/game", gameController::listGames);
 
 

@@ -81,6 +81,36 @@ public class GameController {
         }
     }
 
+    // Logout User
+    public void logoutUser(Context ctx) {
+        String authToken = ctx.header("Authorization");
+
+        if (authToken == null) {
+            ctx.status(401); // Unauthorized
+            ctx.json(Map.of("message", "Error: Missing authentication token."));
+            return;
+        }
+
+        LogoutRequest logoutRequest = new LogoutRequest(authToken);
+
+        try {
+            LogoutResult logoutResult = service.logout(logoutRequest);
+
+            ctx.status(200);
+            ctx.json(new Gson().toJson(logoutResult));
+
+        } catch (IncorrectAuthTokenException e) {
+            ctx.status(401);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        }
+
+
+    }
+
 
     // Delete Database
     public void deleteDb(Context ctx) {
