@@ -19,7 +19,6 @@ public class UserDAO {
         return userDatabase.get(username);
     }
 
-
     public void removeAll() {
         userDatabase.clear();
     }

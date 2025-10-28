@@ -21,9 +21,18 @@ public class Server {
         // Clear database
         javalin.delete("/db", gameController::deleteDb);
 
+        // Register User
+        javalin.post("/user", gameController::registerUser);
+
+        // Login User
+        javalin.post("/session", gameController::loginUser);
+
+        // Logout User
+        javalin.delete("/session", gameController::logoutUser);
+
         javalin.post("/game", gameController::createGame);
         javalin.get("/game", gameController::listGames);
-        javalin.post("/user", gameController::registerUser);
+
 
     }
 

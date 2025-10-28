@@ -29,26 +29,23 @@ public class GameController {
         RegisterRequest registerRequest = new Gson().fromJson(ctx.body(), RegisterRequest.class);
 
         try {
-            // 1. Attempt to register the user
             RegisterResult registerResult = service.register(registerRequest);
 
-            // 2. If successful, set status to 200/201 and return the result
             ctx.status(200);
             ctx.json(new Gson().toJson(registerResult));
 
         } catch (AlreadyTakenException e) {
-            // 3. CATCH the specific exception
+
             ctx.status(403);
 
-            // 4. Create and return a JSON error body with the exception message
             Map<String, String> errorResponse = Map.of(
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
 
         } catch (Exception e) {
-            // 5. Catch any other unexpected exceptions (good practice)
-            ctx.status(500); // Internal Server Error
+
+            ctx.status(400);
 
             Map<String, String> errorResponse = Map.of(
                     "message", "Error: An internal server error occurred."
@@ -56,6 +53,34 @@ public class GameController {
             ctx.json(new Gson().toJson(errorResponse));
         }
     }
+
+
+    // Login User
+    public void loginUser(Context ctx) {
+        LoginRequest loginRequest = new Gson().fromJson(ctx.body(), LoginRequest.class);
+
+        try {
+            LoginResult loginResult = service.login(loginRequest);
+
+            ctx.status(200);
+            ctx.json(new Gson().toJson(loginResult));
+        } catch (IncorrectLoginException e) {
+            ctx.status(401);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        } catch (BadRequestException e) {
+            ctx.status(400);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: An internal server error occurred."
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        }
+    }
+
 
     // Delete Database
     public void deleteDb(Context ctx) {

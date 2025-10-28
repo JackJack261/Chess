@@ -4,7 +4,7 @@ import dataaccess.*;
 import models.AuthData;
 import models.UserData;
 import requestsAndResults.*;
-import exceptions.AlreadyTakenException;
+import exceptions.*;
 
 import java.util.UUID;
 
@@ -47,6 +47,34 @@ public class Service {
             throw new AlreadyTakenException("The username: '" + username + "' is already taken.");
         }
     }
+
+    public LoginResult login(LoginRequest loginRequest) throws IncorrectLoginException, BadRequestException {
+
+        String username = loginRequest.username();
+        String password = loginRequest.password();
+
+        if (username == null || username.isBlank() || password == null || password.isBlank()) {
+            throw new BadRequestException("missing username or password");
+        }
+
+        UserData storedUser = userDAO.getUser(username);
+
+
+        if (storedUser != null && password.equals(storedUser.password())) {
+            // login user
+            String authToken = generateToken();
+            AuthData authData = new AuthData(loginRequest.username(), authToken);
+
+            authDAO.createAuth(authData);
+
+            return new LoginResult(loginRequest.username(), authToken);
+        }
+        else {
+            throw new IncorrectLoginException("Incorrect username or password.");
+        }
+
+    }
+
 
 
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
