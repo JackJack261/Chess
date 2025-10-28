@@ -33,6 +33,7 @@ public class Server {
         // Create Game
         javalin.post("/game", gameController::createGame);
 
+        // List Game
         javalin.get("/game", gameController::listGames);
 
 

@@ -16,8 +16,29 @@ public class GameController {
 
 
     public void listGames(Context ctx) {
-        //example list
-        ctx.result("Here is a list of all games:");
+        String authToken = ctx.header("Authorization");
+
+        if (authToken == null) {
+            ctx.status(401); // Unauthorized
+            ctx.json(Map.of("message", "Error: Missing authentication token."));
+            return;
+        }
+
+        ListRequest listRequest = new ListRequest(authToken);
+
+        try {
+            ListResult listResult = service.list(listRequest);
+
+            ctx.status(200);
+            ctx.json(new Gson().toJson(listResult));
+        } catch (IncorrectAuthTokenException e) {
+            ctx.status(401);
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        }
+
     }
 
     public void registerUser(Context ctx) {

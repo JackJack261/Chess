@@ -8,7 +8,8 @@ import models.UserData;
 import requestsAndResults.*;
 import exceptions.*;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Service {
 
@@ -117,6 +118,28 @@ public class Service {
             return new CreateResult(gameID);
         }
     }
+
+    public ListResult list(ListRequest listRequest) {
+        String authToken = listRequest.authToken();
+
+        if (authToken != null && authDAO.getAuth(authToken) != null) {
+            // list games
+            HashMap<String, GameData> allListedGames = gameDAO.listGames();
+
+            List<GameInfo> gameInfoList = allListedGames.values().stream()
+                    .map(gameData -> new GameInfo(
+                            gameData.gameID(),
+                            gameData.whiteUsername(),
+                            gameData.blackUsername(),
+                            gameData.gameName()
+                    )).collect(Collectors.toList());
+            return new ListResult(gameInfoList);
+        }
+        else {
+            throw new IncorrectAuthTokenException("Invalid Auth Token");
+        }
+    }
+
 
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
 
