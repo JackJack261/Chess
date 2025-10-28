@@ -30,5 +30,9 @@ public class GameDAO {
         gameDatabase.replace(String.valueOf(gameID), gameDatabase.get(String.valueOf(gameID)), updatedGame);
     }
 
+    public void removeAll() {
+        gameDatabase.clear();
+    }
+
 
 }

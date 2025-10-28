@@ -18,13 +18,17 @@ public class Service {
 
 
 
-    public RegisterResult register(RegisterRequest registerRequest) {
+    public RegisterResult register(RegisterRequest registerRequest) throws Exception {
 
         // getUser(username)
         String username = registerRequest.username();
+        String password = registerRequest.password();
 
+        if (password == null) {
+            throw new Exception("Password cannot be empty.");
+        }
 
-        if (userDAO.getUser(username) == null) {
+        else if (userDAO.getUser(username) == null) {
             //available
             String authToken = generateToken();
 
@@ -42,6 +46,16 @@ public class Service {
         else {
             throw new AlreadyTakenException("The username: '" + username + "' is already taken.");
         }
+    }
+
+
+    public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
+
+        userDAO.removeAll();
+        authDAO.removeAll();
+        gameDAO.removeAll();
+
+        return new DeleteResult();
     }
 
 

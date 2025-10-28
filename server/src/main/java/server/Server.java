@@ -1,8 +1,6 @@
 package server;
 
-import dataaccess.UserDAO;
 import handler.GameController;
-import handler.UserController;
 import io.javalin.*;
 
 public class Server {
@@ -17,7 +15,11 @@ public class Server {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
+        // Test 'hello world' endpoint
         javalin.get("/hello", ctx -> ctx.result("Hello world!"));
+
+        // Clear database
+        javalin.delete("/db", gameController::deleteDb);
 
         javalin.post("/game", gameController::createGame);
         javalin.get("/game", gameController::listGames);

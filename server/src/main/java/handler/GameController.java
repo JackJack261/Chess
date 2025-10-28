@@ -56,5 +56,24 @@ public class GameController {
             ctx.json(new Gson().toJson(errorResponse));
         }
     }
+
+    // Delete Database
+    public void deleteDb(Context ctx) {
+        DeleteRequest deleteRequest = new Gson().fromJson(ctx.body(), DeleteRequest.class);
+        try {
+            DeleteResult deleteResult = service.deleteDatabase(deleteRequest);
+
+            ctx.status(200);
+            ctx.json(new Gson().toJson(deleteResult));
+        }
+        catch (Exception e){
+            ctx.status(500);
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: An internal server error occurred."
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        }
+    }
+
 }
 
