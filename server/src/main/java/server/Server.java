@@ -36,6 +36,9 @@ public class Server {
         // List Game
         javalin.get("/game", gameController::listGames);
 
+        // Join Game
+        javalin.put("/game", gameController::joinGame);
+
 
     }
 
