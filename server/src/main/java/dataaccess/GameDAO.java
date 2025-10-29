@@ -20,6 +20,10 @@ public class GameDAO {
         return gameDatabase.get(gameName);
     }
 
+    public GameData getGameByID(int gameID) {
+        return gameDatabase.get(gameID);
+    }
+
     // listGames
     public HashMap<String, GameData> listGames() {
         return gameDatabase;

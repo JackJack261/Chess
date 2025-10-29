@@ -111,8 +111,8 @@ public class Service {
         }
         else {
             int gameID = generateID();
-            String whiteUsername = authDAO.getAuth(authToken).username();
-            GameData gameData = new GameData(gameID, whiteUsername, null, gameName, new ChessGame());
+//            String whiteUsername = authDAO.getAuth(authToken).username();
+            GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
             gameDAO.createGame(gameData);
 
             return new CreateResult(gameID);
@@ -139,6 +139,52 @@ public class Service {
             throw new IncorrectAuthTokenException("Invalid Auth Token");
         }
     }
+
+
+    public JoinResult join(JoinRequest joinRequest) {
+        String authToken = joinRequest.authToken();
+        String playerColor = joinRequest.playerColor();
+        int gameID = joinRequest.gameID();
+
+        GameData gameData = gameDAO.getGame(gameName);
+
+        if (gameDAO.getGame(gameName) == null || gameName == null) {
+            throw new DoesntExistException("Game '" + gameName + "' Doesn't Exist.");
+        }
+        else if (authToken == null || authDAO.getAuth(authToken) == null) {
+            // no authToken or incorrect authToken
+            throw new IncorrectAuthTokenException("Invalid Auth Token.");
+        }
+        else if (playerColor == null) {
+            // no playerColor
+            throw new AlreadyTakenException("Player Color Cannot Be Null.");
+        }
+        else if (playerColor.equals("WHITE") && playerColor.equals(gameData.whiteUsername()) || playerColor.equals("BLACK") && playerColor.equals(gameData.blackUsername())) {
+            throw new AlreadyExistsException("Player Color '" + playerColor + "' Already Taken");
+        }
+        else {
+            // update game
+            int gameId = gameData.gameID();
+            String username = authDAO.getAuth(authToken).username();
+
+            //update black user
+            if (playerColor.equals("BLACK")) {
+                String whiteUsername = gameData.whiteUsername();
+                GameData updatedGame = new GameData(gameId, whiteUsername, username, gameName, gameData.game());
+            }
+
+            // update white user
+            String blackUsername = gameData.blackUsername();
+            GameData updatedGame = new GameData(gameId, username, blackUsername, gameName, gameData.game());
+
+            gameDAO.updateGame(gameName, updatedGame);
+
+            return new JoinResult();
+        }
+
+
+    }
+
 
 
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {

@@ -168,6 +168,56 @@ public class GameController {
 
     }
 
+    // Join Game
+    public void joinGame(Context ctx) {
+        String authToken = ctx.header("Authorization");
+        record JoinRequestBody(String playerColor, int gameID) {}
+
+        JoinRequestBody body = new Gson().fromJson(ctx.body(), JoinRequestBody.class);
+        String playerColor = body.playerColor;
+//        String gameName = body.gameName;
+        int gameID = body.gameID;
+
+        JoinRequest joinRequest = new JoinRequest(authToken, playerColor, gameID);
+
+        try {
+            JoinResult joinResult = service.join(joinRequest);
+
+            ctx.status(200);
+            ctx.json(new Gson().toJson(joinResult));
+        } catch (IncorrectAuthTokenException e) {
+            ctx.status(401);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        } catch (DoesntExistException e) {
+            ctx.status(400);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        } catch (AlreadyTakenException e) {
+            ctx.status(403);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        }
+    }
+
+
+
+
+
+
+
+
+
+
 
     // Delete Database
     public void deleteDb(Context ctx) {
