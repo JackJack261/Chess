@@ -16,7 +16,7 @@ public class BishopCalculator extends ChessCalculator {
     // This is the main brain of moving a piece! Implement this for each individual piece type.
 
     @Override
-    public Collection<ChessMove> PieceMoves(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> validMoves = new ArrayList<>();
 
         // We need to define the directions it can go.

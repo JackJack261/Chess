@@ -1,4 +1,4 @@
-package requestsAndResults;
+package requestsandresults;
 
 public record GameInfo (
         int gameID,

@@ -5,7 +5,7 @@ import java.util.Collection;
 
 public class PawnCalculator extends ChessCalculator{
     @Override
-    public Collection<ChessMove> PieceMoves(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> validMoves = new ArrayList<>();
 
         ChessGame.TeamColor myColor = board.getPiece(myPosition).getTeamColor();

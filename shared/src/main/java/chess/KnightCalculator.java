@@ -6,7 +6,7 @@ import java.util.List;
 
 public class KnightCalculator extends ChessCalculator {
     @Override
-    public Collection<ChessMove> PieceMoves(ChessBoard board, ChessPosition myPosition) {
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         Collection<ChessMove> validMoves = new ArrayList<>();
 
         int[][] directions = {{2, -1}, {2, 1}, {1, 2}, {-1, 2}, {-2, 1}, {-2, -1}, {-1, -2}, {1, -2}};

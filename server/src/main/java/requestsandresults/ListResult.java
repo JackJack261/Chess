@@ -1,4 +1,4 @@
-package requestsAndResults;
+package requestsandresults;
 
 import java.util.List;
 

@@ -9,5 +9,5 @@ public abstract class ChessCalculator {
     // Each method needs a scope, return value, name, parameters
 
 
-    public abstract Collection<ChessMove> PieceMoves(ChessBoard board, ChessPosition myPosition);
+    public abstract Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition);
 }

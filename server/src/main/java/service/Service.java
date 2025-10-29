@@ -5,7 +5,7 @@ import dataaccess.*;
 import models.AuthData;
 import models.GameData;
 import models.UserData;
-import requestsAndResults.*;
+import requestsandresults.*;
 import exceptions.*;
 
 import java.util.*;
@@ -111,7 +111,6 @@ public class Service {
         }
         else {
             int gameID = generateID();
-//            String whiteUsername = authDAO.getAuth(authToken).username();
             GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
             gameDAO.createGame(gameData);
 
@@ -149,16 +148,6 @@ public class Service {
         GameData gameData = gameDAO.getGameByID(gameID);
 
 
-        // DEBUG
-//        System.out.println("DEBUG: playerColor = " + playerColor);
-//        boolean nullTeamColor = playerColor == null;
-//        boolean takenTeamColor = gameData.blackUsername() != null;
-
-//        System.out.println("DEBUG: playerColor equals null? " + nullTeamColor );
-//        System.out.println("DEBUG: gameData.blackUsername() = " + gameData.blackUsername());
-//        System.out.println("DEBUG: Color already taken? " + takenTeamColor);
-
-
         if (gameDAO.getGameByID(gameID) == null || gameID == 0) {
             throw new DoesntExistException("Game '" + gameID + "' Doesn't Exist.");
         }
@@ -168,7 +157,6 @@ public class Service {
         }
         else if (playerColor == null || playerColor.isEmpty()) {
             // no playerColor
-            System.out.println("DEBUG: playerColor Null Exception taken. playerColor = " + playerColor);
             throw new DoesntExistException("Player Color Cannot Be Null.");
         }
 
@@ -178,7 +166,6 @@ public class Service {
 
 
         else if ((playerColor.equals("WHITE") && gameData.whiteUsername() != null) || (playerColor.equals("BLACK") && gameData.blackUsername() != null)) {
-            System.out.println("DEBUG: Exception Taken. playerColor = " + playerColor);
             throw new AlreadyExistsException("Player Color '" + playerColor + "' Already Taken");
         }
         else {
@@ -190,9 +177,6 @@ public class Service {
             //update black user
             if (playerColor.equals("BLACK")) {
                 String whiteUsername = gameData.whiteUsername();
-
-                System.out.println("DEBUG: update Black taken. whiteUsername = " + whiteUsername);
-                System.out.println("DEBUG: Username = " + username);
 
                 GameData updatedGame = new GameData(gameID, whiteUsername, username, gameName, gameData.game());
                 gameDAO.updateGame(gameName, updatedGame);
@@ -212,8 +196,6 @@ public class Service {
 
 
     }
-
-
 
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
 
@@ -237,8 +219,4 @@ public class Service {
         return idCounter++;
     }
 
-
-
-//    public LoginResult login(LoginRequest loginRequest) {}
-//    public void logout(LogoutRequest logoutRequest) {}
 }

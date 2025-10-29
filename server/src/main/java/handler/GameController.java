@@ -1,6 +1,6 @@
 package handler;
 
-import requestsAndResults.*;
+import requestsandresults.*;
 import exceptions.*;
 
 import com.google.gson.Gson;
