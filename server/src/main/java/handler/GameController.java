@@ -206,6 +206,12 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
+        } catch (AlreadyExistsException e) {
+            ctx.status(403);
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
         }
     }
 

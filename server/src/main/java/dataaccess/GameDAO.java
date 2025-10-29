@@ -21,7 +21,12 @@ public class GameDAO {
     }
 
     public GameData getGameByID(int gameID) {
-        return gameDatabase.get(gameID);
+        for (GameData gameData : gameDatabase.values()) {
+            if (gameData.gameID() == gameID) {
+                return gameData;
+            }
+        }
+        return null;
     }
 
     // listGames

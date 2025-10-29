@@ -146,38 +146,66 @@ public class Service {
         String playerColor = joinRequest.playerColor();
         int gameID = joinRequest.gameID();
 
-        GameData gameData = gameDAO.getGame(gameName);
+        GameData gameData = gameDAO.getGameByID(gameID);
 
-        if (gameDAO.getGame(gameName) == null || gameName == null) {
-            throw new DoesntExistException("Game '" + gameName + "' Doesn't Exist.");
+
+        // DEBUG
+//        System.out.println("DEBUG: playerColor = " + playerColor);
+//        boolean nullTeamColor = playerColor == null;
+//        boolean takenTeamColor = gameData.blackUsername() != null;
+
+//        System.out.println("DEBUG: playerColor equals null? " + nullTeamColor );
+//        System.out.println("DEBUG: gameData.blackUsername() = " + gameData.blackUsername());
+//        System.out.println("DEBUG: Color already taken? " + takenTeamColor);
+
+
+        if (gameDAO.getGameByID(gameID) == null || gameID == 0) {
+            throw new DoesntExistException("Game '" + gameID + "' Doesn't Exist.");
         }
         else if (authToken == null || authDAO.getAuth(authToken) == null) {
             // no authToken or incorrect authToken
             throw new IncorrectAuthTokenException("Invalid Auth Token.");
         }
-        else if (playerColor == null) {
+        else if (playerColor == null || playerColor.isEmpty()) {
             // no playerColor
-            throw new AlreadyTakenException("Player Color Cannot Be Null.");
+            System.out.println("DEBUG: playerColor Null Exception taken. playerColor = " + playerColor);
+            throw new DoesntExistException("Player Color Cannot Be Null.");
         }
-        else if (playerColor.equals("WHITE") && playerColor.equals(gameData.whiteUsername()) || playerColor.equals("BLACK") && playerColor.equals(gameData.blackUsername())) {
+
+        else if (!"WHITE".equals(playerColor) && !"BLACK".equals(playerColor)) {
+            throw new DoesntExistException("Player color must be 'WHITE' or 'BLACK'. Received: " + playerColor);
+        }
+
+
+        else if ((playerColor.equals("WHITE") && gameData.whiteUsername() != null) || (playerColor.equals("BLACK") && gameData.blackUsername() != null)) {
+            System.out.println("DEBUG: Exception Taken. playerColor = " + playerColor);
             throw new AlreadyExistsException("Player Color '" + playerColor + "' Already Taken");
         }
         else {
             // update game
-            int gameId = gameData.gameID();
+//            int gameId = gameData.gameID();
+            String gameName = gameData.gameName();
             String username = authDAO.getAuth(authToken).username();
 
             //update black user
             if (playerColor.equals("BLACK")) {
                 String whiteUsername = gameData.whiteUsername();
-                GameData updatedGame = new GameData(gameId, whiteUsername, username, gameName, gameData.game());
+
+                System.out.println("DEBUG: update Black taken. whiteUsername = " + whiteUsername);
+                System.out.println("DEBUG: Username = " + username);
+
+                GameData updatedGame = new GameData(gameID, whiteUsername, username, gameName, gameData.game());
+                gameDAO.updateGame(gameName, updatedGame);
+
             }
 
             // update white user
-            String blackUsername = gameData.blackUsername();
-            GameData updatedGame = new GameData(gameId, username, blackUsername, gameName, gameData.game());
+            else {
+                String blackUsername = gameData.blackUsername();
+                GameData updatedGame = new GameData(gameID, username, blackUsername, gameName, gameData.game());
+                gameDAO.updateGame(gameName, updatedGame);
 
-            gameDAO.updateGame(gameName, updatedGame);
+            }
 
             return new JoinResult();
         }
