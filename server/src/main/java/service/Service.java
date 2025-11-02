@@ -2,9 +2,11 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.*;
+import dataaccess.sql.UserSQLDAO;
 import models.AuthData;
 import models.GameData;
 import models.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import requestsandresults.*;
 import exceptions.*;
 
@@ -14,11 +16,36 @@ import java.util.stream.Collectors;
 public class Service {
 
 
-    UserDAO userDAO = new UserDAO();
-    // do same with auth and game
-    AuthDAO authDAO = new AuthDAO();
-    GameDAO gameDAO = new GameDAO();
+//    UserDAO userDAO;
+    AuthDAO authDAO;
+    GameDAO gameDAO;
 
+    // SQL DAOs
+        UserSQLDAO userDAO;
+
+
+
+    public Service() {
+//        userDAO = new UserDAO();
+        authDAO = new AuthDAO();
+        gameDAO = new GameDAO();
+
+        // SQL DAOs
+        userDAO = new UserSQLDAO();
+
+
+        try {
+            DatabaseManager.configureDatabase();
+        } catch (DataAccessException e) {
+            System.out.println("Database cannot be created.");
+        }
+    }
+
+
+
+    private String hashUserPassword(String clearTextPassword) {
+        return BCrypt.hashpw(clearTextPassword, BCrypt.gensalt());
+    }
 
 
     public RegisterResult register(RegisterRequest registerRequest) throws Exception {
@@ -35,8 +62,10 @@ public class Service {
             //available
             String authToken = generateToken();
 
-            UserData userData = new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
-            AuthData authData = new AuthData(registerRequest.username(), authToken);
+//            String hashedPassword = hashUserPassword(password);
+
+            UserData userData = new UserData(username, password, registerRequest.email());
+            AuthData authData = new AuthData(username, authToken);
 
             userDAO.createUser(userData);
 
@@ -60,7 +89,20 @@ public class Service {
             throw new BadRequestException("missing username or password");
         }
 
-        UserData storedUser = userDAO.getUser(username);
+        // This is OG CODE
+//        UserData storedUser = userDAO.getUser(username);
+
+        // NEW CODE
+
+        UserData storedUser = null;
+        try {
+            storedUser = userDAO.getUser(username);
+
+        } catch (DataAccessException e) {
+            System.out.println("User Was Not Retrieved.");
+        }
+
+//        String hashedDatabasePassword = userDAO.getUser(username).password();
 
 
         if (storedUser != null && password.equals(storedUser.password())) {
@@ -71,8 +113,7 @@ public class Service {
             authDAO.createAuth(authData);
 
             return new LoginResult(loginRequest.username(), authToken);
-        }
-        else {
+        } else {
             throw new IncorrectLoginException("Incorrect username or password.");
         }
 
@@ -199,7 +240,18 @@ public class Service {
 
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
 
-        userDAO.removeAll();
+        // OG CODE
+//        userDAO.removeAll();
+
+
+        // NEW CODE
+
+        try {
+            userDAO.removeAll();
+        } catch (DataAccessException e) {
+            System.out.println("Could Not Delete User DB");
+        }
+
         authDAO.removeAll();
         gameDAO.removeAll();
 

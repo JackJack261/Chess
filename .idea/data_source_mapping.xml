@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DataSourcePerFileMappings">
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/09772109-290c-4318-a093-90ca433f5df8/console.sql" value="09772109-290c-4318-a093-90ca433f5df8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/java/dataaccess/sql/UserSQLDAO.java" value="09772109-290c-4318-a093-90ca433f5df8" />
+    <file url="file://$PROJECT_DIR$/server/src/main/resources/setup.sql" value="09772109-290c-4318-a093-90ca433f5df8" />
+  </component>
+</project>

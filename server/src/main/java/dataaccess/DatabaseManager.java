@@ -41,7 +41,7 @@ public class DatabaseManager {
      * }
      * </code>
      */
-    static Connection getConnection() throws DataAccessException {
+    public static Connection getConnection() throws DataAccessException {
         try {
             //do not wrap the following line with a try-with-resources
             var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
@@ -73,5 +73,41 @@ public class DatabaseManager {
         var host = props.getProperty("db.host");
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
+    }
+
+
+    private static String readFile(String resourceFileName) {
+        try (var inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceFileName)) {
+            if (inputStream == null) {
+                throw new RuntimeException("Resource file not found: " + resourceFileName);
+            }
+
+            // Use a Scanner to read the entire stream content into a single String
+            java.util.Scanner scanner = new java.util.Scanner(inputStream).useDelimiter("\\A");
+
+            return scanner.hasNext() ? scanner.next() : "";
+
+        } catch (java.io.IOException ex) {
+            throw new RuntimeException("Error reading resource file: " + resourceFileName, ex);
+        }
+    }
+
+
+    // Inside DatabaseManager.java
+    public static void configureDatabase() throws DataAccessException {
+        String createStatements = readFile("setup.sql");
+
+        DatabaseManager.createDatabase(); // Ensure the database exists
+
+        try (var conn = getConnection();
+             var statement = conn.createStatement()) {
+
+            // Execute the entire SQL script
+            statement.executeUpdate(createStatements);
+
+        } catch (SQLException e) {
+            // Handle SQL exception
+            throw new DataAccessException("Failed to configure database schema: " + e.getMessage(), e);
+        }
     }
 }

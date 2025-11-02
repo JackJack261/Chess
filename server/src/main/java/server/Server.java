@@ -12,6 +12,7 @@ public class Server {
     public Server() {
 
 
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
         // Register your endpoints and exception handlers here.
@@ -46,6 +47,8 @@ public class Server {
         javalin.start(desiredPort);
         return javalin.port();
     }
+
+
 
     public void stop() {
         javalin.stop();
