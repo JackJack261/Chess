@@ -13,7 +13,6 @@ import requestsandresults.*;
 import exceptions.*;
 
 import javax.xml.crypto.Data;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,23 +55,23 @@ public class Service {
     }
 
 
-    public RegisterResult register(RegisterRequest registerRequest) throws Exception {
+    public RegisterResult register(RegisterRequest registerRequest) throws BadRequestException, AlreadyTakenException, DataAccessException {
 
         // getUser(username)
         String username = registerRequest.username();
         String password = registerRequest.password();
 
         if (password == null) {
-            throw new Exception("Password cannot be empty.");
+            throw new BadRequestException("Password cannot be empty.");
         }
 
         else if (userDAO.getUser(username) == null) {
             //available
             String authToken = generateToken();
 
-//            String hashedPassword = hashUserPassword(password);
+            String hashedPassword = hashUserPassword(password);
 
-            UserData userData = new UserData(username, password, registerRequest.email());
+            UserData userData = new UserData(username, hashedPassword, registerRequest.email());
             AuthData authData = new AuthData(username, authToken);
 
             userDAO.createUser(userData);
@@ -88,7 +87,13 @@ public class Service {
         }
     }
 
-    public LoginResult login(LoginRequest loginRequest) throws IncorrectLoginException, BadRequestException {
+
+    boolean verifyUser(String hashedPassword, String providedClearTextPassword) {
+        // read the previously hashed password from the database
+        return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
+    }
+
+    public LoginResult login(LoginRequest loginRequest) throws IncorrectLoginException, BadRequestException, DataAccessException {
 
         String username = loginRequest.username();
         String password = loginRequest.password();
@@ -102,18 +107,15 @@ public class Service {
 
         // NEW CODE
 
-        UserData storedUser = null;
-        try {
-            storedUser = userDAO.getUser(username);
+        UserData storedUser = userDAO.getUser(username);
 
-        } catch (DataAccessException e) {
-            System.out.println("User Was Not Retrieved.");
+        if (storedUser == null) {
+            throw new DoesntExistException("User Does Not Exist");
         }
 
-//        String hashedDatabasePassword = userDAO.getUser(username).password();
+        String hashedDatabasePassword = storedUser.password();
 
-
-        if (storedUser != null && password.equals(storedUser.password())) {
+        if (verifyUser(hashedDatabasePassword, password)) {
             // login user
             String authToken = generateToken();
             AuthData authData = new AuthData(loginRequest.username(), authToken);
@@ -135,7 +137,7 @@ public class Service {
 
     }
 
-    public LogoutResult logout(LogoutRequest logoutRequest) throws IncorrectAuthTokenException, SQLException, DataAccessException {
+    public LogoutResult logout(LogoutRequest logoutRequest) throws IncorrectAuthTokenException, DataAccessException {
         String authToken = logoutRequest.authToken();
 
         if (authToken != null && authDAO.getAuth(authToken) != null) {
@@ -153,7 +155,7 @@ public class Service {
     }
 
 
-    public CreateResult createGame(CreateRequest createRequest) throws IncorrectAuthTokenException, AlreadyExistsException, InvalidNameException, SQLException, DataAccessException {
+    public CreateResult createGame(CreateRequest createRequest) throws IncorrectAuthTokenException, AlreadyExistsException, InvalidNameException, DataAccessException {
         String authToken = createRequest.authToken();
         String gameName = createRequest.gameName();
 
@@ -176,7 +178,7 @@ public class Service {
         }
     }
 
-    public ListResult list(ListRequest listRequest) throws SQLException, DataAccessException {
+    public ListResult list(ListRequest listRequest) throws DataAccessException {
         String authToken = listRequest.authToken();
 
         if (authToken != null && authDAO.getAuth(authToken) != null) {
@@ -198,7 +200,7 @@ public class Service {
     }
 
 
-    public JoinResult join(JoinRequest joinRequest) throws SQLException, DataAccessException {
+    public JoinResult join(JoinRequest joinRequest) throws DataAccessException {
         String authToken = joinRequest.authToken();
         String playerColor = joinRequest.playerColor();
         int gameID = joinRequest.gameID();

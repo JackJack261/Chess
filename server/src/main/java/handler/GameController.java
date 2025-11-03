@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 import io.javalin.http.Context;
 import service.Service;
 
-import java.sql.SQLException;
+import javax.xml.crypto.Data;
 import java.util.Map;
 
 public class GameController {
@@ -39,8 +39,14 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
-        } catch (SQLException | DataAccessException e) {
-            throw new RuntimeException(e);
+
+        } catch (DataAccessException e) {
+            ctx.status(500);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
         }
 
     }
@@ -63,12 +69,19 @@ public class GameController {
             );
             ctx.json(new Gson().toJson(errorResponse));
 
-        } catch (Exception e) {
+        } catch (BadRequestException e) {
 
             ctx.status(400);
 
             Map<String, String> errorResponse = Map.of(
                     "message", "Error: An internal server error occurred."
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        } catch (DataAccessException e) {
+            ctx.status(500);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
         }
@@ -84,7 +97,7 @@ public class GameController {
 
             ctx.status(200);
             ctx.json(new Gson().toJson(loginResult));
-        } catch (IncorrectLoginException e) {
+        } catch (IncorrectLoginException | DoesntExistException e) {
             ctx.status(401);
 
             Map<String, String> errorResponse = Map.of(
@@ -95,7 +108,14 @@ public class GameController {
             ctx.status(400);
 
             Map<String, String> errorResponse = Map.of(
-                    "message", "Error: An internal server error occurred."
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        } catch (DataAccessException e) {
+            ctx.status(500);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: An internal server error occurred. Unable to connect to Database. " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
         }
@@ -126,8 +146,13 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
-        } catch (SQLException | DataAccessException e) {
-            throw new RuntimeException(e);
+        } catch (DataAccessException e) {
+            ctx.status(500);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
         }
 
 
@@ -156,13 +181,26 @@ public class GameController {
             );
             ctx.json(new Gson().toJson(errorResponse));
 
-        } catch (AlreadyExistsException | InvalidNameException | SQLException | DataAccessException e) {
+        } catch (InvalidNameException e) {
             ctx.status(400);
             Map<String, String> errorResponse = Map.of(
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
+        } catch (DataAccessException e) {
+            ctx.status(500);
 
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
+        } catch (AlreadyExistsException e) {
+            ctx.status(403);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
         }
 
     }
@@ -211,8 +249,13 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
-        } catch (SQLException | DataAccessException e) {
-            throw new RuntimeException(e);
+        } catch (DataAccessException e) {
+            ctx.status(500);
+
+            Map<String, String> errorResponse = Map.of(
+                    "message", "Error: " + e.getMessage()
+            );
+            ctx.json(new Gson().toJson(errorResponse));
         }
     }
 
