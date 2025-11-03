@@ -3,6 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.*;
 import dataaccess.sql.AuthSQLDAO;
+import dataaccess.sql.GameSQLDAO;
 import dataaccess.sql.UserSQLDAO;
 import models.AuthData;
 import models.GameData;
@@ -21,22 +22,24 @@ public class Service {
 
 //    UserDAO userDAO;
 //    AuthDAO authDAO;
-    GameDAO gameDAO;
+//    GameDAO gameDAO;
 
     // SQL DAOs
         UserSQLDAO userDAO;
         AuthSQLDAO authDAO;
+        GameSQLDAO gameDAO;
 
 
 
     public Service() {
 //        userDAO = new UserDAO();
 //        authDAO = new AuthDAO();
-        gameDAO = new GameDAO();
+//        gameDAO = new GameDAO();
 
         // SQL DAOs
         userDAO = new UserSQLDAO();
         authDAO = new AuthSQLDAO();
+        gameDAO = new GameSQLDAO();
 
 
         try {
