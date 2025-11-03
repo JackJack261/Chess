@@ -1,5 +1,6 @@
 package handler;
 
+import dataaccess.DataAccessException;
 import requestsandresults.*;
 import exceptions.*;
 
@@ -7,6 +8,7 @@ import com.google.gson.Gson;
 import io.javalin.http.Context;
 import service.Service;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 public class GameController {
@@ -37,6 +39,8 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -122,6 +126,8 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
         }
 
 
@@ -150,20 +156,13 @@ public class GameController {
             );
             ctx.json(new Gson().toJson(errorResponse));
 
-        } catch (AlreadyExistsException e) {
+        } catch (AlreadyExistsException | InvalidNameException | SQLException | DataAccessException e) {
             ctx.status(400);
             Map<String, String> errorResponse = Map.of(
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
 
-        } catch (InvalidNameException e) {
-            ctx.status(400);
-
-            Map<String, String> errorResponse = Map.of(
-                    "message", "Error: " + e.getMessage()
-            );
-            ctx.json(new Gson().toJson(errorResponse));
         }
 
     }
@@ -212,6 +211,8 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
+        } catch (SQLException | DataAccessException e) {
+            throw new RuntimeException(e);
         }
     }
 

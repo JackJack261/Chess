@@ -2,6 +2,7 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.*;
+import dataaccess.sql.AuthSQLDAO;
 import dataaccess.sql.UserSQLDAO;
 import models.AuthData;
 import models.GameData;
@@ -10,6 +11,8 @@ import org.mindrot.jbcrypt.BCrypt;
 import requestsandresults.*;
 import exceptions.*;
 
+import javax.xml.crypto.Data;
+import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,21 +20,23 @@ public class Service {
 
 
 //    UserDAO userDAO;
-    AuthDAO authDAO;
+//    AuthDAO authDAO;
     GameDAO gameDAO;
 
     // SQL DAOs
         UserSQLDAO userDAO;
+        AuthSQLDAO authDAO;
 
 
 
     public Service() {
 //        userDAO = new UserDAO();
-        authDAO = new AuthDAO();
+//        authDAO = new AuthDAO();
         gameDAO = new GameDAO();
 
         // SQL DAOs
         userDAO = new UserSQLDAO();
+        authDAO = new AuthSQLDAO();
 
 
         try {
@@ -110,7 +115,15 @@ public class Service {
             String authToken = generateToken();
             AuthData authData = new AuthData(loginRequest.username(), authToken);
 
-            authDAO.createAuth(authData);
+
+            // OLD CODE
+//            authDAO.createAuth(authData);
+
+            try {
+                authDAO.createAuth(authData);
+            } catch (DataAccessException e) {
+                System.out.println("Unable to create auth");
+            }
 
             return new LoginResult(loginRequest.username(), authToken);
         } else {
@@ -119,11 +132,12 @@ public class Service {
 
     }
 
-    public LogoutResult logout(LogoutRequest logoutRequest) throws IncorrectAuthTokenException {
+    public LogoutResult logout(LogoutRequest logoutRequest) throws IncorrectAuthTokenException, SQLException, DataAccessException {
         String authToken = logoutRequest.authToken();
 
         if (authToken != null && authDAO.getAuth(authToken) != null) {
             // logout
+
             authDAO.deleteAuth(authToken);
 
             return new LogoutResult();
@@ -136,7 +150,7 @@ public class Service {
     }
 
 
-    public CreateResult createGame(CreateRequest createRequest) throws IncorrectAuthTokenException, AlreadyExistsException, InvalidNameException{
+    public CreateResult createGame(CreateRequest createRequest) throws IncorrectAuthTokenException, AlreadyExistsException, InvalidNameException, SQLException, DataAccessException {
         String authToken = createRequest.authToken();
         String gameName = createRequest.gameName();
 
@@ -159,7 +173,7 @@ public class Service {
         }
     }
 
-    public ListResult list(ListRequest listRequest) {
+    public ListResult list(ListRequest listRequest) throws SQLException, DataAccessException {
         String authToken = listRequest.authToken();
 
         if (authToken != null && authDAO.getAuth(authToken) != null) {
@@ -181,7 +195,7 @@ public class Service {
     }
 
 
-    public JoinResult join(JoinRequest joinRequest) {
+    public JoinResult join(JoinRequest joinRequest) throws SQLException, DataAccessException {
         String authToken = joinRequest.authToken();
         String playerColor = joinRequest.playerColor();
         int gameID = joinRequest.gameID();
@@ -238,7 +252,7 @@ public class Service {
 
     }
 
-    public DeleteResult deleteDatabase(DeleteRequest deleteRequest) {
+    public DeleteResult deleteDatabase(DeleteRequest deleteRequest) throws DataAccessException {
 
         // OG CODE
 //        userDAO.removeAll();

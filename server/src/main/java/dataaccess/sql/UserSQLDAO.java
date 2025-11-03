@@ -54,7 +54,7 @@ public class UserSQLDAO {
                 return null;
             }
         } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Unable to create user: " + e.getMessage(), e);
+            throw new DataAccessException("Unable to get user: " + e.getMessage(), e);
         }
     }
 
@@ -70,7 +70,7 @@ public class UserSQLDAO {
             ps.executeUpdate();
 
         } catch (DataAccessException | SQLException e){
-            throw new DataAccessException("Unable to create user: " + e.getMessage(), e);
+            throw new DataAccessException("Unable to delete user database: " + e.getMessage(), e);
         }
     }
 
