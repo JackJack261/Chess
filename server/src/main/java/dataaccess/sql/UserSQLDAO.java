@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
+import dataaccess.IUserDAO;
 import models.GameData;
 import models.UserData;
 
@@ -13,7 +14,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class UserSQLDAO {
+public class UserSQLDAO implements IUserDAO {
 
     // createUser
 

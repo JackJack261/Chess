@@ -2,6 +2,7 @@ package dataaccess.sql;
 
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
+import dataaccess.IAuthDAO;
 import models.AuthData;
 import models.UserData;
 
@@ -12,7 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class AuthSQLDAO {
+public class AuthSQLDAO implements IAuthDAO {
 
     // createAuth
 
@@ -35,7 +36,7 @@ public class AuthSQLDAO {
 
     // getAuth
 
-    public AuthData getAuth(String authToken) throws DataAccessException, SQLException {
+    public AuthData getAuth(String authToken) throws DataAccessException {
         String sql = "SELECT username, authToken FROM AuthData WHERE authToken = ?";
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -52,9 +53,9 @@ public class AuthSQLDAO {
                 }
                 return null;
 
-            } catch (SQLException e) {
-                throw new DataAccessException("Unable to get auth: " + e.getMessage(), e);
             }
+        } catch (SQLException e) {
+            throw new DataAccessException("Unable to get auth: " + e.getMessage(), e);
         }
     }
 

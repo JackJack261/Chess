@@ -1,10 +1,11 @@
-package dataaccess;
+package dataaccess.memDAO;
 
+import dataaccess.IGameDAO;
 import models.GameData;
 
 import java.util.HashMap;
 
-public class GameDAO {
+public class GameDAO implements IGameDAO {
 
     HashMap<String, GameData> gameDatabase = new HashMap<>();
 
@@ -36,7 +37,7 @@ public class GameDAO {
 
     // updateGame
     public void updateGame(String gameName, GameData updatedGame) {
-        gameDatabase.replace(gameName, gameDatabase.get(gameName), updatedGame);
+        gameDatabase.replace(gameName, updatedGame);
     }
 
     public void removeAll() {

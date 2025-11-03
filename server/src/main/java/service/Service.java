@@ -25,9 +25,9 @@ public class Service {
 //    GameDAO gameDAO;
 
     // SQL DAOs
-        UserSQLDAO userDAO;
-        AuthSQLDAO authDAO;
-        GameSQLDAO gameDAO;
+        IUserDAO userDAO;
+        IAuthDAO authDAO;
+        IGameDAO gameDAO;
 
 
 
@@ -203,56 +203,49 @@ public class Service {
         String playerColor = joinRequest.playerColor();
         int gameID = joinRequest.gameID();
 
-        GameData gameData = gameDAO.getGameByID(gameID);
-
+        if (authToken == null || authDAO.getAuth(authToken) == null) {
+            // no authToken or incorrect authToken
+            throw new IncorrectAuthTokenException("Invalid Auth Token.");
+        }
 
         if (gameDAO.getGameByID(gameID) == null || gameID == 0) {
             throw new DoesntExistException("Game '" + gameID + "' Doesn't Exist.");
         }
-        else if (authToken == null || authDAO.getAuth(authToken) == null) {
-            // no authToken or incorrect authToken
-            throw new IncorrectAuthTokenException("Invalid Auth Token.");
-        }
-        else if (playerColor == null || playerColor.isEmpty()) {
+
+        GameData gameData = gameDAO.getGameByID(gameID);
+
+        if (playerColor == null || playerColor.isEmpty()) {
             // no playerColor
             throw new DoesntExistException("Player Color Cannot Be Null.");
         }
 
-        else if (!"WHITE".equals(playerColor) && !"BLACK".equals(playerColor)) {
+        if (!"WHITE".equals(playerColor) && !"BLACK".equals(playerColor)) {
             throw new DoesntExistException("Player color must be 'WHITE' or 'BLACK'. Received: " + playerColor);
         }
-
-
-        else if ((playerColor.equals("WHITE") && gameData.whiteUsername() != null) || (playerColor.equals("BLACK") && gameData.blackUsername() != null)) {
+        if ((playerColor.equals("WHITE") && gameData.whiteUsername() != null) || (playerColor.equals("BLACK") && gameData.blackUsername() != null)) {
             throw new AlreadyExistsException("Player Color '" + playerColor + "' Already Taken");
         }
-        else {
-            // update game
+
+        // update game
 //            int gameId = gameData.gameID();
-            String gameName = gameData.gameName();
-            String username = authDAO.getAuth(authToken).username();
+        String gameName = gameData.gameName();
+        String username = authDAO.getAuth(authToken).username();
+        GameData updatedGame;
 
-            //update black user
-            if (playerColor.equals("BLACK")) {
-                String whiteUsername = gameData.whiteUsername();
+        //update black user
+        if (playerColor.equals("BLACK")) {
+            String whiteUsername = gameData.whiteUsername();
 
-                GameData updatedGame = new GameData(gameID, whiteUsername, username, gameName, gameData.game());
-                gameDAO.updateGame(gameName, updatedGame);
-
-            }
-
-            // update white user
-            else {
-                String blackUsername = gameData.blackUsername();
-                GameData updatedGame = new GameData(gameID, username, blackUsername, gameName, gameData.game());
-                gameDAO.updateGame(gameName, updatedGame);
-
-            }
-
-            return new JoinResult();
+            updatedGame = new GameData(gameID, whiteUsername, username, gameName, gameData.game());
         }
 
-
+        // update white user
+        else {
+            String blackUsername = gameData.blackUsername();
+            updatedGame = new GameData(gameID, username, blackUsername, gameName, gameData.game());
+        }
+        gameDAO.updateGame(gameName, updatedGame);
+        return new JoinResult();
     }
 
     public DeleteResult deleteDatabase(DeleteRequest deleteRequest) throws DataAccessException {

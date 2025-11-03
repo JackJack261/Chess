@@ -1,10 +1,11 @@
-package dataaccess;
+package dataaccess.memDAO;
 
+import dataaccess.IAuthDAO;
 import models.AuthData;
 
 import java.util.HashMap;
 
-public class AuthDAO {
+public class AuthDAO implements IAuthDAO {
 
     HashMap<String, AuthData> authDatabase = new HashMap<>();
 

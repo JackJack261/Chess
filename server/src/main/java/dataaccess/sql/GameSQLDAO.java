@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseManager;
+import dataaccess.IGameDAO;
 import models.GameData;
 
 import javax.xml.crypto.Data;
@@ -14,7 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 
-public class GameSQLDAO {
+public class GameSQLDAO implements IGameDAO {
 
 
     // createGame
@@ -61,9 +62,11 @@ public class GameSQLDAO {
                     String whiteUsername = rs.getString("whiteUsername");
                     String blackUsername = rs.getString("blackUsername");
                     String retrievedGameName = rs.getString("gameName");
-                    ChessGame game = rs.getObject("gameData", ChessGame.class);
+                    String game = rs.getString("gameData");
 
-                    return new GameData(retrievedGameID, whiteUsername, blackUsername, retrievedGameName, game);
+                    ChessGame deserializedGame = deserialize(game);
+
+                    return new GameData(retrievedGameID, whiteUsername, blackUsername, retrievedGameName, deserializedGame);
 
                 }
 
@@ -90,9 +93,11 @@ public class GameSQLDAO {
                     String whiteUsername = rs.getString("whiteUsername");
                     String blackUsername = rs.getString("blackUsername");
                     String retrievedGameName = rs.getString("gameName");
-                    ChessGame game = rs.getObject("gameData", ChessGame.class);
+                    String game = rs.getString("gameData");
 
-                    return new GameData(retrievedGameID, whiteUsername, blackUsername, retrievedGameName, game);
+                    ChessGame deserializedGame = deserialize(game);
+
+                    return new GameData(retrievedGameID, whiteUsername, blackUsername, retrievedGameName, deserializedGame);
 
                 }
 
@@ -105,21 +110,22 @@ public class GameSQLDAO {
 
     // listGames
     public HashMap<String, GameData> listGames() throws DataAccessException {
-        String sql = "SELECT * FROM GamaData";
+        String sql = "SELECT * FROM GameData";
         HashMap<String, GameData> games = new HashMap<>();
 
         try (Connection conn = DatabaseManager.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery(sql)) {
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 int gameId = rs.getInt("gameID");
                 String whiteUsername = rs.getString("whiteUsername");
                 String blackUsername = rs.getString("blackUsername");
                 String gameName = rs.getString("gameName");
-                ChessGame retrievedGame = rs.getObject("gameData", ChessGame.class);
+                String game = rs.getString("gameData");
 
-                GameData gameData = new GameData(gameId, whiteUsername, blackUsername, gameName, retrievedGame);
+                ChessGame deserializedGame = deserialize(game);
+                GameData gameData = new GameData(gameId, whiteUsername, blackUsername, gameName, deserializedGame);
 
                 games.put(gameName, gameData);
             }
@@ -144,11 +150,11 @@ public class GameSQLDAO {
             ps.setString(1, serializedGame);
             ps.setString(2, gameName);
 
-            ps.executeUpdate(sql);
+            ps.executeUpdate();
 
 
         } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Unable to list all games: " + e.getMessage(), e);
+            throw new DataAccessException("Unable to update game: " + e.getMessage(), e);
         }
     }
 
@@ -163,7 +169,7 @@ public class GameSQLDAO {
             ps.executeUpdate();
 
         } catch (DataAccessException | SQLException e){
-            throw new DataAccessException("Unable to delete user database: " + e.getMessage(), e);
+            throw new DataAccessException("Unable to delete game database: " + e.getMessage(), e);
         }
     }
 
