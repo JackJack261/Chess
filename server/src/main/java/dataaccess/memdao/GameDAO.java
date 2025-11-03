@@ -1,4 +1,4 @@
-package dataaccess.memDAO;
+package dataaccess.memdao;
 
 import dataaccess.IGameDAO;
 import models.GameData;

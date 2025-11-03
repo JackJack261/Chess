@@ -1,4 +1,4 @@
-package dataaccess.memDAO;
+package dataaccess.memdao;
 
 import dataaccess.IUserDAO;
 import models.UserData;
