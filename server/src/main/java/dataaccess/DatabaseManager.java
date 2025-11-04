@@ -75,14 +75,14 @@ public class DatabaseManager {
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
 
-    private static final String[] clearStatements = {
+    private static final String[] ClearStatements = {
             """
             DROP TABLE IF EXISTS `AuthData`;""","""
             DROP TABLE IF EXISTS `GameData`;""","""
             DROP TABLE IF EXISTS `UserData`;"""
     };
 
-    private static final String[] createStatements = {"""
+    private static final String[] CreateStatements = {"""
             
             CREATE TABLE `UserData` (
                                     `username` VARCHAR(255) NOT NULL PRIMARY KEY,
@@ -113,7 +113,7 @@ public class DatabaseManager {
 
             // Execute the entire SQL script
 
-            for (String singleStatement : createStatements) {
+            for (String singleStatement : CreateStatements) {
                 statement.executeUpdate(singleStatement);
             }
         } catch (SQLException e) {
@@ -129,7 +129,7 @@ public class DatabaseManager {
         try (var conn = getConnection();
              var statement = conn.createStatement()) {
 
-            for (String singleStatement : clearStatements) {
+            for (String singleStatement : ClearStatements) {
                 statement.executeUpdate(singleStatement);
             }
         } catch (SQLException e) {
