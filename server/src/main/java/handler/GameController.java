@@ -158,7 +158,6 @@ public class GameController {
 
     }
 
-
     // Create Game
     public void createGame(Context ctx) {
         String authToken = ctx.header("Authorization");
@@ -236,15 +235,9 @@ public class GameController {
                     "message", "Error: " + e.getMessage()
             );
             ctx.json(new Gson().toJson(errorResponse));
-        } catch (AlreadyTakenException e) {
+        } catch (AlreadyTakenException | AlreadyExistsException e) {
             ctx.status(403);
 
-            Map<String, String> errorResponse = Map.of(
-                    "message", "Error: " + e.getMessage()
-            );
-            ctx.json(new Gson().toJson(errorResponse));
-        } catch (AlreadyExistsException e) {
-            ctx.status(403);
             Map<String, String> errorResponse = Map.of(
                     "message", "Error: " + e.getMessage()
             );
@@ -258,16 +251,6 @@ public class GameController {
             ctx.json(new Gson().toJson(errorResponse));
         }
     }
-
-
-
-
-
-
-
-
-
-
 
     // Delete Database
     public void deleteDb(Context ctx) {

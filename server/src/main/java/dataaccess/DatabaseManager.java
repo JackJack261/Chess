@@ -75,27 +75,36 @@ public class DatabaseManager {
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
 
+    private static final String[] clearStatements = {
+            """
+            DROP TABLE IF EXISTS `AuthData`;""","""
+            DROP TABLE IF EXISTS `GameData`;""","""
+            DROP TABLE IF EXISTS `UserData`;"""
+    };
 
-    private static String readFile(String resourceFileName) {
-        try (var inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceFileName)) {
-            if (inputStream == null) {
-                throw new RuntimeException("Resource file not found: " + resourceFileName);
-            }
-
-            // Use a Scanner to read the entire stream content into a single String
-            java.util.Scanner scanner = new java.util.Scanner(inputStream).useDelimiter("\\A");
-
-            return scanner.hasNext() ? scanner.next() : "";
-
-        } catch (java.io.IOException ex) {
-            throw new RuntimeException("Error reading resource file: " + resourceFileName, ex);
-        }
-    }
-
+    private static final String[] createStatements = {"""
+            
+            CREATE TABLE `UserData` (
+                                    `username` VARCHAR(255) NOT NULL PRIMARY KEY,
+                                    `passwordHash` VARCHAR(255) NOT NULL,
+                                    `email` VARCHAR(255) NOT NULL
+            );""","""
+            
+            CREATE TABLE `GameData` (
+                                    `gameID` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                                    `whiteUsername` VARCHAR(255),
+                                    `blackUsername` VARCHAR(255),
+                                    `gameName` VARCHAR(255) NOT NULL UNIQUE,
+                                    `gameData` LONGTEXT NOT NULL
+            );""","""
+            
+            CREATE TABLE `AuthData` (
+                                         `authToken` VARCHAR(255) NOT NULL PRIMARY KEY,
+                                         `username` VARCHAR(255) NOT NULL
+            );"""};
 
     // Inside DatabaseManager.java
     public static void configureDatabase() throws DataAccessException {
-        String createStatements = readFile("setup.sql");
 
         DatabaseManager.createDatabase(); // Ensure the database exists
 
@@ -103,11 +112,32 @@ public class DatabaseManager {
              var statement = conn.createStatement()) {
 
             // Execute the entire SQL script
-            statement.executeUpdate(createStatements);
 
+            for (String singleStatement : createStatements) {
+                statement.executeUpdate(singleStatement);
+            }
         } catch (SQLException e) {
             // Handle SQL exception
             throw new DataAccessException("Failed to configure database schema: " + e.getMessage(), e);
         }
     }
+
+    public static void clearDatabase() throws DataAccessException {
+
+        DatabaseManager.createDatabase();
+
+        try (var conn = getConnection();
+             var statement = conn.createStatement()) {
+
+            for (String singleStatement : clearStatements) {
+                statement.executeUpdate(singleStatement);
+            }
+        } catch (SQLException e) {
+            // Handle SQL exception
+            throw new DataAccessException("Failed to configure database schema: " + e.getMessage(), e);
+        }
+
+    }
+
+
 }

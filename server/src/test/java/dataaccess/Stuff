@@ -1,0 +1,13 @@
+    @Test
+    public void Pos() {
+        Assertions.assertDoesNotThrow(()->{
+
+        });
+    }
+
+    @Test
+    public void Neg() {
+        Assertions.assertThrows(DataAccessException.class, ()->{
+
+        });
+    }
