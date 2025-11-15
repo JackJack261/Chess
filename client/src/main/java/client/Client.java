@@ -4,6 +4,7 @@ import chess.ChessGame;
 import dataaccess.DataAccessException;
 import models.*;
 import requestsandresults.GameInfo;
+import client.ChessboardPrinter;
 
 import java.util.List;
 import java.util.Scanner;
@@ -14,9 +15,11 @@ public class Client {
     private boolean isLoggedIn = false;
     private String authToken = null;
     private List<GameInfo> displayedGames;
+    private final ChessboardPrinter boardPrinter;
 
     public Client(String serverUrl) {
         this.serverFacade = new ServerFacade(serverUrl);
+        this.boardPrinter = new ChessboardPrinter();
     }
 
 
@@ -261,6 +264,11 @@ public class Client {
     private void drawChessBoard(String perspective) {
         // For now, just a placeholder
         System.out.println("\n--- (Drawing board from " + perspective + " perspective) ---\n");
+        System.out.println();
+
+        boardPrinter.draw(perspective);
+
+        System.out.println();
         // new ChessboardPrinter().drawBoard(perspective);
     }
 }
