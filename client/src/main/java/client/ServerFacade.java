@@ -1,13 +1,6 @@
-package client; // Or your main client package
+package client;
 
-// You will need to import your DTOs (Data Transfer Objects) from the shared module
-// e.g., import chess.service.response.LoginResponse;
-// e.g., import chess.service.request.LoginRequest;
-
-//import server.src.main.java.*;
-
-
-import com.google.gson.Gson; // For JSON serialization
+import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import models.*;
 import requestsandresults.*;
