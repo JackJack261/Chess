@@ -141,6 +141,13 @@ public class ServerFacadeTests {
 
     }
 
-    @
+    @Test
+    public void listFailure() throws DataAccessException {
+        String badAuthToken = "Bad Auth Token";
+
+        assertThrows(DataAccessException.class, () -> {
+            facade.listGames(badAuthToken);
+        }, "Listing with bad auth token should throw error");
+    }
 
 }
