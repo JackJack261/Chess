@@ -77,7 +77,7 @@ public class ServerFacade {
 
         UserData request = new UserData(username, password, email);
         // Debug print
-        System.out.println("DEBUG: Request = " + request);
+//        System.out.println("DEBUG: Request = " + request);
 
         return this.makeRequest("POST", path, request, AuthData.class, null);
     }

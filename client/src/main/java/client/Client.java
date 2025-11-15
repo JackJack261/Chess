@@ -1,39 +1,35 @@
 package client;
 
+import dataaccess.DataAccessException;
+import models.*;
+
 import java.util.Scanner;
 
 public class Client {
 
     private final ServerFacade serverFacade;
     private boolean isLoggedIn = false;
-    private String authToken = null;
 
     public Client(String serverUrl) {
         this.serverFacade = new ServerFacade(serverUrl);
     }
 
-    // You'll add more methods here
-
-    // Inside your Client.java class
 
     public void run() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("♕ Welcome to Chess. Type 'help' to get started.");
 
         while (true) {
-            // 1. PRINT PROMPT (based on state)
             if (isLoggedIn) {
                 System.out.print("[LOGGED_IN] >>> ");
             } else {
                 System.out.print("[LOGGED_OUT] >>> ");
             }
 
-            // 2. READ INPUT
             String line = scanner.nextLine();
             String[] args = line.split(" ");
             String command = args.length > 0 ? args[0].toLowerCase() : "help";
 
-            // 3. EVALUATE (call helper method)
             try {
                 if (isLoggedIn) {
                     handlePostloginCommands(command, args);
@@ -47,18 +43,30 @@ public class Client {
         }
     }
 
-    // 4. Create stubs for your command handlers
-    private void handlePreloginCommands(String command, String[] args) {
+    private void handlePreloginCommands(String command, String[] args) throws DataAccessException {
 
         // Debug
         System.out.println("Pre-login command: " + command);
 
-        // Help
-        if (command.equals("help")) {
-            System.out.println("register <USERNAME> <PASSWORD> <EMAIL> - to create an account");
-            System.out.println("login <USERNAME> <PASSWORD> - to play chess");
-            System.out.println("quit - playing chess");
-            System.out.println("help - with possible commands");
+        // Register
+        String authToken = null;
+        if (command.equals("register")) {
+            if (args.length == 4) {
+                String username = args[1];
+                String password = args[2];
+                String email = args[3];
+
+
+                AuthData authData = serverFacade.register(username, password, email);
+
+                this.isLoggedIn = true;
+                assert authData != null;
+                authToken = authData.authToken();
+
+                System.out.println("Welcome, " + authData.username());
+            } else {
+                System.out.println("Usage: register <USERNAME> <PASSWORD> <EMAIL>");
+            }
         }
 
         // Quit
@@ -69,19 +77,40 @@ public class Client {
 
         // Login
         else if (command.equals("login")) {
+            if (args.length == 3) {
+                String username = args[1];
+                String password = args[2];
 
+                AuthData authData = serverFacade.login(username, password);
+
+
+                this.isLoggedIn = true;
+                assert authData != null;
+                authToken = authData.authToken();
+
+                System.out.println("Welcome, " + authData.username());
+            } else {
+                System.out.println("Usage: login <USERNAME> <PASSWORD>");
+            }
         }
 
-        // Register
+        // Help
         else {
-
+            System.out.println("register <USERNAME> <PASSWORD> <EMAIL> - to create an account");
+            System.out.println("login <USERNAME> <PASSWORD> - to play chess");
+            System.out.println("quit - playing chess");
+            System.out.println("help - with possible commands");
         }
 
 
     }
 
     private void handlePostloginCommands(String command, String[] args) {
-        // TODO: Implement this later
         System.out.println("Post-login command: " + command);
+
+        if (command.equals("quit")) {
+            System.out.println("Goodbye!");
+            System.exit(0);
+        }
     }
 }
