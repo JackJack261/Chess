@@ -102,7 +102,6 @@ public class ChessboardPrinter {
         System.out.printf(" %s ", piece);
     }
 
-\
     private void printBorderNumber(int displayRow) {
         System.out.print(SET_BG_COLOR_LIGHT_GREY);
         System.out.print(SET_TEXT_COLOR_BLACK);
