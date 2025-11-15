@@ -6,6 +6,9 @@ import server.Server;
 import org.junit.jupiter.api.*;
 import dataaccess.DataAccessException;
 import models.AuthData;
+
+import javax.xml.crypto.Data;
+
 import static org.junit.jupiter.api.Assertions.*;
 //import org.junit.jupiter.api.Assertions;
 
@@ -76,6 +79,23 @@ public class ServerFacadeTests {
             facade.login("WrongUser", "No password");
         }, "Logging in with incorrect user should throw exception");
 
+    }
+
+    @Test
+    public void logoutSuccess() throws DataAccessException {
+        var authData = facade.register("Test", "Test", "Test@test.com");
+
+        String authToken = authData.authToken();
+
+        assertDoesNotThrow(() -> facade.logout(authToken), "Logging out should not throw error");
+
+    }
+
+    @Test
+    public void logoutFailure() throws DataAccessException {
+        assertThrows(DataAccessException.class, () -> {
+            facade.logout("shouldBeWrong");
+        }, "Should throw an error");
     }
 
 }

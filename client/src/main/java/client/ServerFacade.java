@@ -1,11 +1,5 @@
 package client; // Or your main client package
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
 // You will need to import your DTOs (Data Transfer Objects) from the shared module
 // e.g., import chess.service.response.LoginResponse;
 // e.g., import chess.service.request.LoginRequest;
@@ -17,6 +11,7 @@ import com.google.gson.Gson; // For JSON serialization
 import dataaccess.DataAccessException;
 import models.*;
 import requestsandresults.LoginRequest;
+import requestsandresults.LogoutRequest;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,26 +19,17 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * Handles all network communication with the chess server API.
- */
+
 public class ServerFacade {
 
     private final String baseUrl;
-//    private final HttpClient client;
 
     public ServerFacade(String baseUrl) {
         this.baseUrl = baseUrl;
-//        this.client = HttpClient.newHttpClient();
     }
 
-    // --- Core API Methods ---
 
-    /**
-     * Calls the /user (Register) API.
-     */
-
-    private <T> T makeRequest(String method, String path, Object requestBody, Class<T> responseClass) throws DataAccessException {
+    private <T> T makeRequest(String method, String path, Object requestBody, Class<T> responseClass, String authToken) throws DataAccessException {
         try {
             URL url = new URL(baseUrl + path);
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
@@ -51,6 +37,9 @@ public class ServerFacade {
             // Debug Help
 //            System.out.println("DEBUG: url = " + url);
 
+            if (authToken != null && !authToken.isEmpty()) {
+                http.addRequestProperty("Authorization", authToken);
+            }
 
             http.setRequestMethod(method);
             http.setDoOutput(true);
@@ -97,7 +86,7 @@ public class ServerFacade {
         // Debug print
         System.out.println("DEBUG: Request = " + request);
 
-        return this.makeRequest("POST", path, request, AuthData.class);
+        return this.makeRequest("POST", path, request, AuthData.class, null);
     }
 
     public AuthData login(String username, String password) throws DataAccessException {
@@ -106,12 +95,26 @@ public class ServerFacade {
 
         var request = new LoginRequest(username, password);
 
-        return this.makeRequest("POST", path, request, AuthData.class);
+        return this.makeRequest("POST", path, request, AuthData.class, null);
 
     }
 
+    // Logout
+
+    public void logout(String authToken) throws DataAccessException {
+        var path = "/session";
+
+        this.makeRequest("DELETE", path, null, null, authToken);
+    }
+
+    // List Games
+
+    // Create Games
+
+    // Join Games
+
 
     public void clear() throws DataAccessException {
-        this.makeRequest("DELETE", "/db", null, null );
+        this.makeRequest("DELETE", "/db", null, null, null);
     }
 }
