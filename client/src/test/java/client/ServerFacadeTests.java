@@ -150,4 +150,41 @@ public class ServerFacadeTests {
         }, "Listing with bad auth token should throw error");
     }
 
+    @Test
+    public void joinSuccess() throws DataAccessException {
+        var authData = facade.register("Test", "Test", "Test@test.com");
+
+        String authToken = authData.authToken();
+
+        int gameID = facade.createGame(authToken, "Test Game");
+
+        assertDoesNotThrow(() -> {
+            facade.joinGame(authToken, "WHITE", gameID);
+        });
+    }
+
+    @Test
+    public void joinFailure() throws DataAccessException {
+        var authData = facade.register("Test", "Test", "Test@test.com");
+
+        String authToken = authData.authToken();
+
+        int gameID = facade.createGame(authToken, "Test Game");
+
+        facade.joinGame(authToken, "WHITE", gameID);
+
+        // Same color
+        assertThrows(DataAccessException.class, () -> {
+            facade.joinGame(authToken, "WHITE", gameID);
+        }, "Cannot be same color");
+        // wrong gameID
+        assertThrows(DataAccessException.class, () -> {
+            facade.joinGame(authToken, "BLACK", 47);
+        }, "Cannot be wrong gameID");
+        // wrong token
+        assertThrows(DataAccessException.class, () -> {
+            facade.joinGame("Wrong Token", "BLACK", gameID);
+        }, "Cannot be wrong token");
+    }
+
 }

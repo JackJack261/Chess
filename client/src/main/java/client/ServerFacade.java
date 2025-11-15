@@ -131,6 +131,14 @@ public class ServerFacade {
 
     // Join Games
 
+    public void joinGame(String authToken, String playerColor, int gameID) throws DataAccessException {
+        var path = "/game";
+
+        var request = new JoinRequest(authToken, playerColor, gameID);
+
+        this.makeRequest("PUT", path, request, null, authToken);
+    }
+
 
     public void clear() throws DataAccessException {
         this.makeRequest("DELETE", "/db", null, null, null);
