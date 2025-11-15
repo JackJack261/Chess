@@ -165,6 +165,8 @@ public class Client {
                 System.out.println("Usage: list games");
             }
         }
+
+
         // Play/Join game
         else if (command.equals("join")) {
             if (args.length == 3) {
@@ -172,34 +174,29 @@ public class Client {
                     int gameNumber = Integer.parseInt(args[1]);
                     String playerColor = args[2].toUpperCase(); // "WHITE" or "BLACK"
 
-                    // Check if user has listed games first
                     if (this.displayedGames == null) {
                         System.out.println("Error: You must 'list games' first.");
                         return;
                     }
 
-                    // Check for valid game number
                     if (gameNumber < 1 || gameNumber > this.displayedGames.size()) {
                         System.out.println("Error: Invalid game number.");
                         return;
                     }
 
-                    // Check for valid color
                     if (!playerColor.equals("WHITE") && !playerColor.equals("BLACK")) {
                         System.out.println("Error: Invalid color. Must be WHITE or BLACK.");
                         return;
                     }
 
-                    // Get the real gameID from the stored list
                     GameInfo game = this.displayedGames.get(gameNumber - 1);
 
-                    // Call the facade to join
                     serverFacade.joinGame(authToken, playerColor, game.gameID());
 
                     System.out.println("Joined game as " + playerColor + ".");
 
                     // Draw the board (as required by Phase 5)
-                    drawChessBoard(playerColor.equals("WHITE") ? ChessGame.Side.WHITE : ChessGame.Side.BLACK);
+                    drawChessBoard(playerColor);
 
                 } catch (NumberFormatException e) {
                     System.out.println("Error: Game ID must be a number.");
@@ -210,6 +207,37 @@ public class Client {
         }
 
         // Observe game
+
+        else if (command.equals("observe")) {
+            if (args.length == 2) {
+                try {
+                    int gameNumber = Integer.parseInt(args[1]);
+
+                    if (this.displayedGames == null) {
+                        System.out.println("Error: You must 'list games' first.");
+                        return;
+                    }
+
+                    if (gameNumber < 1 || gameNumber > this.displayedGames.size()) {
+                        System.out.println("Error: Invalid game number.");
+                        return;
+                    }
+
+                    GameInfo game = this.displayedGames.get(gameNumber - 1);
+
+                    serverFacade.joinGame(authToken, null, game.gameID());
+
+                    System.out.println("Observing game.");
+
+                    drawChessBoard("WHITE");
+
+                } catch (NumberFormatException e) {
+                    System.out.println("Error: Game ID must be a number.");
+                }
+            } else {
+                System.out.println("Usage: observe game <ID>");
+            }
+        }
 
         // Quit
         else if (command.equals("quit")) {
@@ -228,5 +256,11 @@ public class Client {
             System.out.println("help - with possible commands");
         }
 
+    }
+
+    private void drawChessBoard(String perspective) {
+        // For now, just a placeholder
+        System.out.println("\n--- (Drawing board from " + perspective + " perspective) ---\n");
+        // new ChessboardPrinter().drawBoard(perspective);
     }
 }
