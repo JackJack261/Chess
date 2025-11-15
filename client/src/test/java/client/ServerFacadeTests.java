@@ -1,6 +1,8 @@
 package client;
 
+import models.GameData;
 import org.junit.jupiter.api.*;
+import requestsandresults.GameInfo;
 import server.Server;
 
 import org.junit.jupiter.api.*;
@@ -8,6 +10,8 @@ import dataaccess.DataAccessException;
 import models.AuthData;
 
 import javax.xml.crypto.Data;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 //import org.junit.jupiter.api.Assertions;
@@ -97,5 +101,46 @@ public class ServerFacadeTests {
             facade.logout("shouldBeWrong");
         }, "Should throw an error");
     }
+
+
+    @Test
+    public void createSuccess() throws DataAccessException {
+        var authData = facade.register("Test", "Test", "Test@test.com");
+
+        String authToken = authData.authToken();
+
+        int gameID = assertDoesNotThrow(() -> {
+            return facade.createGame(authToken, "TestGame");
+        });
+
+        assertTrue(gameID > 0, "The gameID should be positive integer");
+    }
+
+    @Test
+    public void createFailure() throws DataAccessException {
+        var authData = facade.register("Test", "Test", "Test@test.com");
+
+        String authToken = authData.authToken();
+
+        assertThrows(DataAccessException.class, () -> {
+            facade.createGame(authToken, null);
+        });
+    }
+
+    @Test
+    public void listSuccess() throws DataAccessException {
+        var authData = facade.register("Test", "Test", "Test@test.com");
+
+        String authToken = authData.authToken();
+
+        facade.createGame(authToken, "Test Game");
+
+        List<GameInfo> listedGames = assertDoesNotThrow(() -> facade.listGames(authToken));
+
+        assertNotNull(listedGames, "Listed games should not be null");
+
+    }
+
+    @
 
 }

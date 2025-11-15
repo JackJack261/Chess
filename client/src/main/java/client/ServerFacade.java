@@ -10,14 +10,14 @@ package client; // Or your main client package
 import com.google.gson.Gson; // For JSON serialization
 import dataaccess.DataAccessException;
 import models.*;
-import requestsandresults.LoginRequest;
-import requestsandresults.LogoutRequest;
+import requestsandresults.*;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 
 
 public class ServerFacade {
@@ -109,7 +109,25 @@ public class ServerFacade {
 
     // List Games
 
+    public List<GameInfo> listGames(String authToken) throws DataAccessException {
+        var path = "/game";
+
+        var response = this.makeRequest("GET", path, null, ListResult.class, authToken);
+
+        return response.games();
+    }
+
     // Create Games
+
+    public int createGame(String authToken, String gameName) throws DataAccessException {
+        var path = "/game";
+
+        var request = new CreateRequest(authToken, gameName);
+
+        var response = this.makeRequest("POST", path, request, CreateResult.class, authToken);
+
+        return response.gameID();
+    }
 
     // Join Games
 
