@@ -46,6 +46,7 @@ public class ChessboardPrinter {
         System.out.print("   "); // Space for row number
 
         System.out.println(RESET_BG_COLOR); // Newline
+        System.out.print(SET_TEXT_COLOR_WHITE);
     }
 
     private void drawRows(boolean isWhitePerspective) {

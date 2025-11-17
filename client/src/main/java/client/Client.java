@@ -228,7 +228,7 @@ public class Client {
 
                     GameInfo game = this.displayedGames.get(gameNumber - 1);
 
-                    serverFacade.joinGame(authToken, null, game.gameID());
+//                    serverFacade.joinGame(authToken, null, game.gameID());
 
                     System.out.println("Observing game.");
 
@@ -248,6 +248,14 @@ public class Client {
             System.exit(0);
         }
 
+        // Clear DB
+        else if (command.equals("clear")) {
+            System.out.println("[+] Clearing Database...");
+
+            serverFacade.clear();
+            this.isLoggedIn = false;
+        }
+
         // Help
         else {
             System.out.println("create <NAME> - a game");
@@ -257,6 +265,7 @@ public class Client {
             System.out.println("logout - when you are done");
             System.out.println("quit - playing chess");
             System.out.println("help - with possible commands");
+            System.out.println("clear - DEBUG: clear whole database. REMOVES EVERYTHING!");
         }
 
     }
