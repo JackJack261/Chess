@@ -228,8 +228,6 @@ public class Client {
 
                     GameInfo game = this.displayedGames.get(gameNumber - 1);
 
-//                    serverFacade.joinGame(authToken, null, game.gameID());
-
                     System.out.println("Observing game.");
 
                     drawChessBoard("WHITE");
