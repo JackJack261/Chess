@@ -73,9 +73,9 @@ public class ChessboardPrinter {
             // Set square color
             boolean isLightSquare = (displayRow + boardCol) % 2 != 0;
             if (isLightSquare) {
-                System.out.print(SET_BG_COLOR_LIGHT_GREY);
-            } else {
                 System.out.print(SET_BG_COLOR_DARK_GREY);
+            } else {
+                System.out.print(SET_BG_COLOR_LIGHT_GREY);
             }
 
             // Get and print the piece

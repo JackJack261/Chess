@@ -5,9 +5,12 @@ import dataaccess.DataAccessException;
 import models.*;
 import requestsandresults.GameInfo;
 import client.ChessboardPrinter;
+import ui.EscapeSequences.*;
 
 import java.util.List;
 import java.util.Scanner;
+
+import static ui.EscapeSequences.*;
 
 public class Client {
 
@@ -103,10 +106,25 @@ public class Client {
 
         // Help
         else {
-            System.out.println("register <USERNAME> <PASSWORD> <EMAIL> - to create an account");
-            System.out.println("login <USERNAME> <PASSWORD> - to play chess");
-            System.out.println("quit - playing chess");
-            System.out.println("help - with possible commands");
+            System.out.print(SET_TEXT_COLOR_BLUE);
+            System.out.print("register <USERNAME> <PASSWORD> <EMAIL>");
+            System.out.print(SET_TEXT_COLOR_WHITE);
+            System.out.println(" - to create an account");
+
+            System.out.print(SET_TEXT_COLOR_BLUE);
+            System.out.print("login <USERNAME> <PASSWORD>");
+            System.out.print(SET_TEXT_COLOR_WHITE);
+            System.out.println(" - to play chess");
+
+            System.out.print(SET_TEXT_COLOR_BLUE);
+            System.out.print("quit");
+            System.out.print(SET_TEXT_COLOR_WHITE);
+            System.out.println("- playing chess");
+
+            System.out.print(SET_TEXT_COLOR_BLUE);
+            System.out.print("help");
+            System.out.print(SET_TEXT_COLOR_WHITE);
+            System.out.println(" - with possible commands");
         }
 
 
@@ -256,14 +274,14 @@ public class Client {
 
         // Help
         else {
-            System.out.println("create <NAME> - a game");
-            System.out.println("list - games");
-            System.out.println("join <ID> [WHITE|BLACK] - a game");
-            System.out.println("observe <ID> - a game");
-            System.out.println("logout - when you are done");
-            System.out.println("quit - playing chess");
-            System.out.println("help - with possible commands");
-            System.out.println("clear - DEBUG: clear whole database. REMOVES EVERYTHING!");
+            System.out.println(SET_TEXT_COLOR_BLUE + "create <NAME>" + SET_TEXT_COLOR_WHITE + " - a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_WHITE + " - games");
+            System.out.println(SET_TEXT_COLOR_BLUE + "join <ID> [WHITE|BLACK]" + SET_TEXT_COLOR_WHITE + " - a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "observe <ID>" + SET_TEXT_COLOR_WHITE + " - a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "logout" + SET_TEXT_COLOR_WHITE + " - when you are done");
+            System.out.println(SET_TEXT_COLOR_BLUE + "quit" + SET_TEXT_COLOR_WHITE + " - playing chess");
+            System.out.println(SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " - with possible commands");
+            System.out.println(SET_TEXT_COLOR_BLUE + "clear" + SET_TEXT_COLOR_WHITE + " - DEBUG: clear whole database. REMOVES EVERYTHING!");
         }
 
     }

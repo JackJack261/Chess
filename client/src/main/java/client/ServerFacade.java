@@ -49,7 +49,7 @@ public class ServerFacade {
             http.connect();
 
             if (http.getResponseCode() >= 400) {
-                throw new DataAccessException("HTTP Error: " + http.getResponseCode() + " " + http.getResponseMessage());
+                throw new DataAccessException("HTTP Error: " + http.getResponseMessage());
             }
 
             return readResponseBody(http, responseClass);
