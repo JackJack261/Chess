@@ -1,6 +1,6 @@
 package requestsandresults;
 
-public record GameInfo(
+public record GameInfo (
         int gameID,
         String whiteUsername,
         String blackUsername,
