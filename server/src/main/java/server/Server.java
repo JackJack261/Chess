@@ -2,12 +2,13 @@ package server;
 
 import handler.GameController;
 import io.javalin.*;
+import server.websocket.WebSocketHandler;
 
 public class Server {
 
     private final Javalin javalin;
     private final GameController gameController = new GameController();
-
+    private final WebSocketHandler webSocketHandler = new WebSocketHandler();
 
     public Server() {
 
@@ -40,6 +41,13 @@ public class Server {
         // Join Game
         javalin.put("/game", gameController::joinGame);
 
+        // WebSocket Connect
+        javalin.ws("/ws", ws -> {
+           ws.onConnect(webSocketHandler::onConnect);
+           ws.onMessage(webSocketHandler::onMessage);
+           ws.onClose(webSocketHandler::onClose);
+           ws.onError(webSocketHandler::onError);
+        });
 
     }
 
