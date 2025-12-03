@@ -1,49 +1,55 @@
 package client;
 
-import jakarta.websocket.ContainerProvider;
-import jakarta.websocket.Endpoint;
-import jakarta.websocket.EndpointConfig;
-import jakarta.websocket.MessageHandler;
-import jakarta.websocket.Session;
-import jakarta.websocket.WebSocketContainer;
+import client.websocket.NotificationHandler;
+import jakarta.websocket.*;
+
+import com.google.gson.Gson;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.Scanner;
+import java.net.URISyntaxException;
 
 public class WebSocketFacade extends Endpoint{
+
     public Session session;
+    public NotificationHandler notificationHandler;
 
-    public static void main(String[] args) throws Exception {
-        WebSocketFacade client = new WebSocketFacade();
+    public WebSocketFacade(String url, NotificationHandler notificationHandler) throws Exception {
+        try {
+            url = url.replace("http", "ws");
+            URI socketURI = new URI(url + "/ws");
+            this.notificationHandler = notificationHandler;
 
-        Scanner scanner = new Scanner(System.in);
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            this.session = container.connectToServer(this, socketURI);
 
-        System.out.println("Enter a message you want to echo:");
-        while(true) {
-            client.send(scanner.nextLine());
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
+
+                    notificationHandler.notify(serverMessage);
+                }
+            });
+
+        } catch (DeploymentException | IOException | URISyntaxException ex) {
+            throw new Exception("500: " + ex.getMessage());
         }
-    }
-
-    public WebSocketFacade() throws Exception {
-        URI uri = new URI("ws://localhost:8080/ws");
-        WebSocketContainer container = ContainerProvider.getWebSocketContainer();
-        session = container.connectToServer(this, uri);
-
-        this.session.addMessageHandler(new MessageHandler.Whole<String>() {
-            public void onMessage(String message) {
-                System.out.println(message);
-                System.out.println("\nEnter another message you want to echo:");
-            }
-        });
-    }
-
-    public void send(String message) throws IOException {
-        session.getBasicRemote().sendText(message);
     }
 
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
-
     }
+
+    public void sendCommand(UserGameCommand command) throws Exception {
+        try {
+            this.session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (IOException ex) {
+            throw new Exception("500: " + ex.getMessage());
+        }
+    }
+
 }
