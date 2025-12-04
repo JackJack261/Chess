@@ -1,5 +1,7 @@
 package client;
-
+import chess.ChessBoard;
+import chess.ChessPiece;
+import chess.ChessPosition;
 
 import static ui.EscapeSequences.*;
 
@@ -22,11 +24,11 @@ public class ChessboardPrinter {
     private static final String[] COLS_WHITE = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
     private static final String[] COLS_BLACK = {" h ", " g ", " f ", " e ", " d ", " c ", " b ", " a "};
 
-    public void draw(String perspective) {
+    public void draw(ChessBoard board, String perspective) {
         boolean isWhitePerspective = perspective.equals("WHITE");
 
         drawHeader(isWhitePerspective);
-        drawRows(isWhitePerspective);
+        drawRows(board, isWhitePerspective);
         drawHeader(isWhitePerspective);
 
         // Reset all formatting
@@ -49,18 +51,18 @@ public class ChessboardPrinter {
         System.out.print(SET_TEXT_COLOR_WHITE);
     }
 
-    private void drawRows(boolean isWhitePerspective) {
+    private void drawRows(ChessBoard board, boolean isWhitePerspective) {
         for (int row = 0; row < 8; row++) {
             // White perspective: 8, 7, ... 1
             // Black perspective: 1, 2, ... 8
             int boardRow = isWhitePerspective ? row : (7 - row);
             int displayRow = isWhitePerspective ? (8 - row) : (row + 1);
 
-            drawRow(boardRow, displayRow, isWhitePerspective);
+            drawRow(board, boardRow, displayRow, isWhitePerspective);
         }
     }
 
-    private void drawRow(int boardRow, int displayRow, boolean isWhitePerspective) {
+    private void drawRow(ChessBoard board, int boardRow, int displayRow, boolean isWhitePerspective) {
         // Draw left row number
         printBorderNumber(displayRow);
 
@@ -79,7 +81,11 @@ public class ChessboardPrinter {
             }
 
             // Get and print the piece
-            String piece = INITIAL_BOARD[boardRow][boardCol];
+//            String piece = INITIAL_BOARD[boardRow][boardCol];
+
+            var pos = new ChessPosition(boardRow + 1, boardCol + 1);
+            ChessPiece piece = board.getPiece(pos);
+
             printPiece(piece);
         }
 
@@ -89,9 +95,9 @@ public class ChessboardPrinter {
         System.out.println(RESET_BG_COLOR); // Newline
     }
 
-    private void printPiece(String piece) {
+    private void printPiece(ChessPiece piece) {
 
-        if (Character.isUpperCase(piece.charAt(0))) {
+        if (piece.getTeamColor().toString().equals("BLACK")) {
             // Black piece (Blue, as per instructions)
             System.out.print(SET_TEXT_COLOR_BLUE);
         } else {

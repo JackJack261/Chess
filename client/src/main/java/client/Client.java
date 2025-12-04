@@ -294,7 +294,7 @@ public class Client implements NotificationHandler {
 
 
                     // Might need to fix this
-                    drawChessBoard("WHITE");
+//                    drawChessBoard("WHITE");
 
                 } catch (NumberFormatException e) {
                     System.out.println("Error: Game ID must be a number.");
@@ -348,8 +348,9 @@ public class Client implements NotificationHandler {
         switch (message.getServerMessageType()) {
             case LOAD_GAME -> {
                 LoadGameMessage loadGame = (LoadGameMessage) message;
-                // TODO: Update board printer to take a ChessBoard or ChessGame
-                // boardPrinter.draw(loadGame.getGame().getBoard(), ...);
+                ChessGame game = loadGame.getGame();
+
+                boardPrinter.draw(game.getBoard(), perspective);
 
                 System.out.println("Received LOAD_GAME");
             }
