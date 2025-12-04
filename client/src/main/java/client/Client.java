@@ -29,6 +29,7 @@ public class Client implements NotificationHandler {
     private final ChessboardPrinter boardPrinter;
     private WebSocketFacade ws;
     private final String serverUrl;
+    private String visitorColor = "WHITE";
 
     public Client(String serverUrl) {
         this.serverFacade = new ServerFacade(serverUrl);
@@ -235,6 +236,8 @@ public class Client implements NotificationHandler {
                         }
                     }
 
+                    this.visitorColor = playerColor;
+
                     serverFacade.joinGame(authToken, playerColor, game.gameID());
                     System.out.println("Joined game as " + playerColor + ".");
 
@@ -282,6 +285,9 @@ public class Client implements NotificationHandler {
                             return;
                         }
                     }
+
+                    this.visitorColor = "WHITE";
+                    serverFacade.joinGame(authToken, null, game.gameID());
 
                     try {
                         var wsCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID());
@@ -332,16 +338,16 @@ public class Client implements NotificationHandler {
 
     }
 
-    private void drawChessBoard(String perspective) {
-        // For now, just a placeholder
-        System.out.println("\n--- (Drawing board from " + perspective + " perspective) ---\n");
-        System.out.println();
-
-        boardPrinter.draw(perspective);
-
-        System.out.println();
-        // new ChessboardPrinter().drawBoard(perspective);
-    }
+//    private void drawChessBoard(String perspective) {
+//        // For now, just a placeholder
+//        System.out.println("\n--- (Drawing board from " + perspective + " perspective) ---\n");
+//        System.out.println();
+//
+//        boardPrinter.draw(perspective);
+//
+//        System.out.println();
+//        // new ChessboardPrinter().drawBoard(perspective);
+//    }
 
     @Override
     public void notify(ServerMessage message) {
@@ -350,7 +356,7 @@ public class Client implements NotificationHandler {
                 LoadGameMessage loadGame = (LoadGameMessage) message;
                 ChessGame game = loadGame.getGame();
 
-                boardPrinter.draw(game.getBoard(), perspective);
+                boardPrinter.draw(game.getBoard(), this.visitorColor);
 
                 System.out.println("Received LOAD_GAME");
             }
