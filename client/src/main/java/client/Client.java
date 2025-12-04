@@ -1,28 +1,39 @@
 package client;
 
-import chess.ChessGame;
 import dataaccess.DataAccessException;
 import models.*;
 import requestsandresults.GameInfo;
 import client.ChessboardPrinter;
 import ui.EscapeSequences.*;
 
+import client.websocket.NotificationHandler;
+import client.WebSocketFacade;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
+import chess.ChessGame;
+
 import java.util.List;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class Client {
+public class Client implements NotificationHandler {
 
     private final ServerFacade serverFacade;
     private boolean isLoggedIn = false;
     private String authToken = null;
     private List<GameInfo> displayedGames;
     private final ChessboardPrinter boardPrinter;
+    private WebSocketFacade ws;
+    private final String serverUrl;
 
     public Client(String serverUrl) {
         this.serverFacade = new ServerFacade(serverUrl);
         this.boardPrinter = new ChessboardPrinter();
+        this.serverUrl = serverUrl;
     }
 
 
@@ -48,7 +59,6 @@ public class Client {
                     handlePreloginCommands(command, args);
                 }
             } catch (Exception e) {
-                // 4. PRINT ERROR (user-friendly!)
                 System.out.println("Error: " + e.getMessage());
             }
         }
@@ -144,6 +154,10 @@ public class Client {
                 this.authToken = null;
                 this.displayedGames = null;
 
+                if (ws != null) {
+                    ws = null;
+                }
+
                 System.out.println("You have been logged out.");
             } else {
                 System.out.println("Usage: logout");
@@ -212,12 +226,26 @@ public class Client {
 
                     GameInfo game = this.displayedGames.get(gameNumber - 1);
 
-                    serverFacade.joinGame(authToken, playerColor, game.gameID());
+                    if (ws == null) {
+                        try {
+                            ws = new WebSocketFacade(serverUrl, this);
+                        } catch (Exception e) {
+                            System.out.println("Failed to connect to WebSocket: " + e.getMessage());
+                            return;
+                        }
+                    }
 
+                    serverFacade.joinGame(authToken, playerColor, game.gameID());
                     System.out.println("Joined game as " + playerColor + ".");
 
-                    // Draw the board (as required by Phase 5)
-                    drawChessBoard(playerColor);
+                    try {
+                        var wsCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID());
+                        ws.sendCommand(wsCommand);
+                    } catch (Exception e) {
+                        System.out.println("Failed to send CONNECT command: " + e.getMessage());
+                    }
+
+//                    drawChessBoard(playerColor);
 
                 } catch (NumberFormatException e) {
                     System.out.println("Error: Game ID must be a number.");
@@ -246,8 +274,26 @@ public class Client {
 
                     GameInfo game = this.displayedGames.get(gameNumber - 1);
 
+                    if (ws == null) {
+                        try {
+                            ws = new WebSocketFacade(serverUrl, this);
+                        } catch (Exception e) {
+                            System.out.println("Failed to connect to WebSocket: " + e.getMessage());
+                            return;
+                        }
+                    }
+
+                    try {
+                        var wsCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID());
+                        ws.sendCommand(wsCommand);
+                    } catch (Exception e) {
+                        System.out.println("Failed to send CONNECT command: " + e.getMessage());
+                    }
+
                     System.out.println("Observing game.");
 
+
+                    // Might need to fix this
                     drawChessBoard("WHITE");
 
                 } catch (NumberFormatException e) {
@@ -295,5 +341,26 @@ public class Client {
 
         System.out.println();
         // new ChessboardPrinter().drawBoard(perspective);
+    }
+
+    @Override
+    public void notify(ServerMessage message) {
+        switch (message.getServerMessageType()) {
+            case LOAD_GAME -> {
+                LoadGameMessage loadGame = (LoadGameMessage) message;
+                // TODO: Update board printer to take a ChessBoard or ChessGame
+                // boardPrinter.draw(loadGame.getGame().getBoard(), ...);
+
+                System.out.println("Received LOAD_GAME");
+            }
+            case ERROR -> {
+                ErrorMessage error = (ErrorMessage) message;
+                System.out.println(SET_TEXT_COLOR_RED + "Error: " + error.getErrorMessage() + RESET_TEXT_COLOR);
+            }
+            case NOTIFICATION -> {
+                NotificationMessage notification = (NotificationMessage) message;
+                System.out.println(SET_TEXT_COLOR_BLUE + notification.getMessage() + RESET_TEXT_COLOR);
+            }
+        }
     }
 }
