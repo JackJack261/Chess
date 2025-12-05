@@ -139,10 +139,17 @@ public class GameSQLDAO implements IGameDAO {
     // updateGame
 
     public void updateGame(String gameName, GameData updatedGame) throws DataAccessException {
-        String sql = "UPDATE GameData SET whiteUsername = ?, blackUsername = ? WHERE gameName = ?";
+        String sql = "UPDATE GameData SET whiteUsername = ?, blackUsername = ?, gameData = ? WHERE gameName = ?";
+
+//        String sql = "UPDATE GameData SET gameData = ? WHERE gameName = ?";
 
         String updatedWhiteUsername = updatedGame.whiteUsername();
         String updatedBlackUsername = updatedGame.blackUsername();
+
+        String serializedGame = serialize(updatedGame.game());
+
+        // Debug
+        System.out.println("DEBUG: update game name: " + gameName);
 
 
         try (Connection conn = DatabaseManager.getConnection();
@@ -150,7 +157,9 @@ public class GameSQLDAO implements IGameDAO {
 
             ps.setString(1, updatedWhiteUsername);
             ps.setString(2, updatedBlackUsername);
-            ps.setString(3, gameName);
+            ps.setString(3, serializedGame);
+            ps.setString(4, gameName);
+
 
             ps.executeUpdate();
 

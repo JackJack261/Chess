@@ -165,6 +165,7 @@ public class Client implements NotificationHandler {
                 this.displayedGames = null;
 
                 if (ws != null) {
+                    ws.session.close();
                     ws = null;
                 }
 
@@ -378,7 +379,7 @@ public class Client implements NotificationHandler {
             System.out.println(SET_TEXT_COLOR_BLUE + "create <NAME>" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_WHITE + " - games");
             System.out.println(SET_TEXT_COLOR_BLUE + "join <ID> [WHITE|BLACK]" + SET_TEXT_COLOR_WHITE + " - a game");
-            System.out.println(SET_TEXT_COLOR_BLUE + "move <start position> <end position>" + SET_TEXT_COLOR_WHITE + " - move a piece");
+            System.out.println(SET_TEXT_COLOR_BLUE + "move <start position> <end position> <promotion piece (for pawns), default is null>" + SET_TEXT_COLOR_WHITE + " - move a piece");
             System.out.println(SET_TEXT_COLOR_BLUE + "observe <ID>" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "logout" + SET_TEXT_COLOR_WHITE + " - when you are done");
             System.out.println(SET_TEXT_COLOR_BLUE + "quit" + SET_TEXT_COLOR_WHITE + " - playing chess");
@@ -420,11 +421,11 @@ public class Client implements NotificationHandler {
         // Dang board is inverted, this should fix it
 
         // DEBUG
-        System.out.println("DEBUG BEFORE: Row: " + row + ", Col: " + col);
+//        System.out.println("DEBUG BEFORE: Row: " + row + ", Col: " + col);
 
 //        row = 9 - row;
 
-        System.out.println("DEBUG AFTER: Row: " + row + ", Col: " + col);
+//        System.out.println("DEBUG AFTER: Row: " + row + ", Col: " + col);
 
 
         if (col < 1 || col > 8 || row < 1 || row > 8) {

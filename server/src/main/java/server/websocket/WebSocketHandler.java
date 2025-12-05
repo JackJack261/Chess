@@ -49,16 +49,8 @@ public class WebSocketHandler {
 
             // Make Move
             case MAKE_MOVE -> {
-                // handleMakeMove(ctx, command);
-
-                switch (command.getCommandType()) {
-                    case CONNECT -> handleConnect(ctx, command);
-                    case MAKE_MOVE -> {
-                        // Deserialize explicitly to MakeMoveCommand to get the 'move' field
-                        var moveCommand = new Gson().fromJson(message, MakeMoveCommand.class);
-                        handleMakeMove(ctx, moveCommand);
-                    }
-                }
+                var moveCommand = new Gson().fromJson(message, MakeMoveCommand.class);
+                handleMakeMove(ctx, moveCommand);
             }
 
             // Leave
@@ -75,7 +67,7 @@ public class WebSocketHandler {
 
     private void handleConnect(WsContext ctx, UserGameCommand command) throws IOException, DataAccessException {
 
-        System.out.println("DEBUG: Executing handleConnect for game " + command.getGameID());
+//        System.out.println("DEBUG: Executing handleConnect for game " + command.getGameID());
 
         AuthData auth = authDAO.getAuth(command.getAuthToken());
         String username = auth.username();
@@ -119,7 +111,7 @@ public class WebSocketHandler {
             return;
         }
 
-        // 4. Attempt the move
+        // Attempt the move
         try {
 
             // Make move

@@ -9,7 +9,12 @@ public class ConnectionManager {
 
     public void add(Integer gameID, WsContext ctx) {
         connections.putIfAbsent(gameID, new ArrayList<>());
-        connections.get(gameID).add(ctx);
+//        connections.get(gameID).add(ctx);
+        var list = connections.get(gameID);
+
+        if (!list.contains(ctx)) {
+            list.add(ctx);
+        }
     }
 
     public void remove(WsContext ctx) {
