@@ -11,6 +11,7 @@ import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsMessageContext;
 import models.AuthData;
 import models.GameData;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import io.javalin.websocket.WsErrorContext;
 import websocket.messages.*;
@@ -34,7 +35,7 @@ public class WebSocketHandler {
         connections.remove(ctx);
     }
 
-    public void onMessage(WsMessageContext ctx) {
+    public void onMessage(WsMessageContext ctx) throws IOException, DataAccessException {
         String message = ctx.message();
         System.out.println("Received: " + message);
 
@@ -49,6 +50,15 @@ public class WebSocketHandler {
             // Make Move
             case MAKE_MOVE -> {
                 // handleMakeMove(ctx, command);
+
+                switch (command.getCommandType()) {
+                    case CONNECT -> handleConnect(ctx, command);
+                    case MAKE_MOVE -> {
+                        // Deserialize explicitly to MakeMoveCommand to get the 'move' field
+                        var moveCommand = new Gson().fromJson(message, MakeMoveCommand.class);
+                        handleMakeMove(ctx, moveCommand);
+                    }
+                }
             }
 
             // Leave
@@ -83,6 +93,57 @@ public class WebSocketHandler {
          String message = String.format("%s joined the game", username);
          String notificationMsg = new NotificationMessage(message).toString();
          connections.broadcast(command.getGameID(), notificationMsg);
+    }
+
+    private void handleMakeMove(WsContext ctx, MakeMoveCommand command) throws IOException, DataAccessException {
+        String authToken = command.getAuthToken();
+        String username = authDAO.getAuth(authToken).username();
+        var gameData = gameDAO.getGameByID(command.getGameID());
+        var game = gameData.game();
+
+        // 2. Validate: Is the game already over?
+        // (You might have a 'isGameOver' boolean in your GameData or check checkmate)
+        // if (gameData.isGameOver()) { ... error ... }
+
+        // Is the player in the game
+        ChessGame.TeamColor playerColor = null;
+        if (username.equals(gameData.whiteUsername())) {
+            playerColor = ChessGame.TeamColor.WHITE;
+        } else if (username.equals(gameData.blackUsername())) {
+            playerColor = ChessGame.TeamColor.BLACK;
+        } else {
+            // User is an observer, they cannot move!
+            sendError(ctx, "Error: Observers cannot make moves");
+            return;
+        }
+
+        // 4. Attempt the move
+        try {
+
+            // Make move
+            game.makeMove(command.getMove());
+
+            // On Success, update database
+            gameDAO.updateGame(gameData.gameName(), gameData);
+
+            // Broadcast to each player
+            var loadGameMsg = new LoadGameMessage(game);
+            connections.broadcast(command.getGameID(), new Gson().toJson(loadGameMsg));
+
+            // Broadcast to observers
+            String message = String.format("%s moved %s", username, command.getMove().toString());
+            var notificationMsg = new NotificationMessage(message);
+
+            connections.broadcast(command.getGameID(), new Gson().toJson(notificationMsg));
+
+        } catch (Exception e) {
+            sendError(ctx, "Error: " + e.getMessage());
+        }
+    }
+
+    private void sendError(WsContext ctx, String msg) {
+        var errorMsg = new ErrorMessage(msg);
+        ctx.send(new Gson().toJson(errorMsg));
     }
 
 

@@ -1,5 +1,8 @@
 package client;
 
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import dataaccess.DataAccessException;
 import models.*;
 import requestsandresults.GameInfo;
@@ -8,6 +11,7 @@ import ui.EscapeSequences.*;
 
 import client.websocket.NotificationHandler;
 import client.WebSocketFacade;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -30,6 +34,7 @@ public class Client implements NotificationHandler {
     private WebSocketFacade ws;
     private final String serverUrl;
     private String visitorColor = "WHITE";
+    private int currentGameID;
 
     public Client(String serverUrl) {
         this.serverFacade = new ServerFacade(serverUrl);
@@ -141,7 +146,7 @@ public class Client implements NotificationHandler {
 
     }
 
-    private void handlePostloginCommands(String command, String[] args) throws DataAccessException {
+    private void handlePostloginCommands(String command, String[] args) throws Exception {
         System.out.println("Post-login command: " + command);
 
 
@@ -237,6 +242,7 @@ public class Client implements NotificationHandler {
                     }
 
                     this.visitorColor = playerColor;
+                    this.currentGameID = gameNumber;
 
                     serverFacade.joinGame(authToken, playerColor, game.gameID());
                     System.out.println("Joined game as " + playerColor + ".");
@@ -287,6 +293,7 @@ public class Client implements NotificationHandler {
                     }
 
                     this.visitorColor = "WHITE";
+                    this.currentGameID = gameNumber;
                     serverFacade.joinGame(authToken, null, game.gameID());
 
                     try {
@@ -298,10 +305,6 @@ public class Client implements NotificationHandler {
 
                     System.out.println("Observing game.");
 
-
-                    // Might need to fix this
-//                    drawChessBoard("WHITE");
-
                 } catch (NumberFormatException e) {
                     System.out.println("Error: Game ID must be a number.");
                 }
@@ -309,6 +312,49 @@ public class Client implements NotificationHandler {
                 System.out.println("Usage: observe game <ID>");
             }
         }
+
+
+        else if (command.equals("move")) {
+            if (args.length >= 3) {
+                try {
+                    String startStr = args[1];
+                    String endStr = args[2];
+                    String promotionPieceStr = (args.length > 3) ? args[3] : null;
+
+                    ChessPosition startPos = convertToPosition(startStr);
+                    ChessPosition endPos = convertToPosition(endStr);
+                    ChessPiece.PieceType promotionPiece = convertPromotionPiece(promotionPieceStr);
+
+                    ChessMove move = new ChessMove(startPos, endPos, promotionPiece);
+
+                    if (ws == null) {
+                        System.out.println("Error: You are not connected to a game.");
+                        return;
+                    }
+
+                    ws.sendCommand(new MakeMoveCommand(authToken, currentGameID, move));
+
+                    System.out.println("Sending move: " + startStr + " to " + endStr);
+
+
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid coordinates. Usage: move <START> <END> [PROMOTION]");
+                    System.out.println("Example: move e2 e4");
+                } catch (Exception e) {
+                    System.out.println("Error processing move: " + e.getMessage());
+                }
+            }
+
+            else {
+                System.out.println("Usage: move <START> <END> [PROMOTION_PIECE]");
+            }
+        }
+
+
+
+
+
+
 
         // Quit
         else if (command.equals("quit")) {
@@ -329,6 +375,7 @@ public class Client implements NotificationHandler {
             System.out.println(SET_TEXT_COLOR_BLUE + "create <NAME>" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_WHITE + " - games");
             System.out.println(SET_TEXT_COLOR_BLUE + "join <ID> [WHITE|BLACK]" + SET_TEXT_COLOR_WHITE + " - a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "move <start position> <end position>" + SET_TEXT_COLOR_WHITE + " - move a piece");
             System.out.println(SET_TEXT_COLOR_BLUE + "observe <ID>" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "logout" + SET_TEXT_COLOR_WHITE + " - when you are done");
             System.out.println(SET_TEXT_COLOR_BLUE + "quit" + SET_TEXT_COLOR_WHITE + " - playing chess");
@@ -338,16 +385,40 @@ public class Client implements NotificationHandler {
 
     }
 
-//    private void drawChessBoard(String perspective) {
-//        // For now, just a placeholder
-//        System.out.println("\n--- (Drawing board from " + perspective + " perspective) ---\n");
-//        System.out.println();
-//
-//        boardPrinter.draw(perspective);
-//
-//        System.out.println();
-//        // new ChessboardPrinter().drawBoard(perspective);
-//    }
+
+    private ChessPiece.PieceType convertPromotionPiece(String piece) {
+        if (piece == null) {
+            return null;
+        }
+        return switch (piece.toUpperCase()) {
+            case "QUEEN" -> ChessPiece.PieceType.QUEEN;
+            case "ROOK" -> ChessPiece.PieceType.ROOK;
+            case "KNIGHT" -> ChessPiece.PieceType.KNIGHT;
+            case "BISHOP" -> ChessPiece.PieceType.BISHOP;
+            default -> null;
+        };
+    }
+
+    private ChessPosition convertToPosition(String positionText) throws NumberFormatException {
+        // takes something like "a3" and converts it to [0, 4]
+        if (positionText.length() != 2) {
+            throw new NumberFormatException("Invalid coordinate length");
+        }
+
+        char colChar = positionText.toLowerCase().charAt(0);
+        char rowChar = positionText.charAt(1);
+
+        // Convert column to 1-8
+        int col = colChar - 'a' + 1;
+        // Convert row to 1-8
+        int row = Character.getNumericValue(rowChar);
+
+        if (col < 1 || col > 8 || row < 1 || row > 8) {
+            throw new NumberFormatException("Coordinate out of bounds");
+        }
+
+        return new ChessPosition(row, col);
+    }
 
     @Override
     public void notify(ServerMessage message) {
