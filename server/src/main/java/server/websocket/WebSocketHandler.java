@@ -16,6 +16,7 @@ import websocket.commands.UserGameCommand;
 import io.javalin.websocket.WsErrorContext;
 import websocket.messages.*;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -54,6 +55,9 @@ public class WebSocketHandler {
             }
 
             // Leave
+            case LEAVE -> {
+                handleLeave(ctx, command);
+            }
 
             // Resign
 
@@ -133,6 +137,30 @@ public class WebSocketHandler {
         } catch (Exception e) {
             sendError(ctx, "Error: " + e.getMessage());
         }
+    }
+
+
+    private void handleLeave(WsContext ctx, UserGameCommand command) throws IOException, DataAccessException {
+        String authToken = command.getAuthToken();
+        String username = authDAO.getAuth(authToken).username();
+        int gameID = command.getGameID();
+
+        GameData gameData = gameDAO.getGameByID(gameID);
+
+        GameData updatedGame = gameData;
+        if (username.equals(gameData.whiteUsername())) {
+            updatedGame = new GameData(gameID, null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+            gameDAO.updateGame(gameData.gameName(), updatedGame);
+        } else if (username.equals(gameData.blackUsername())) {
+            updatedGame = new GameData(gameID, gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+            gameDAO.updateGame(gameData.gameName(), updatedGame);
+        }
+
+        connections.remove(ctx);
+
+        String message = String.format("%s left the game", username);
+        var notification = new NotificationMessage(message);
+        connections.broadcast(gameID, new Gson().toJson(notification));
     }
 
     private void sendError(WsContext ctx, String msg) {

@@ -355,8 +355,34 @@ public class Client implements NotificationHandler {
         }
 
 
+        // Leave
+        else if (command.equals("leave")) {
+            if (args.length == 1) {
+                if (ws == null) {
+                    System.out.println("Error: You are not connected to a game.");
+                    return;
+                }
 
+                try {
+                    ws.sendCommand(new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, currentGameID));
 
+                    ws.session.close();
+                    ws = null;
+
+                    this.currentGameID = -1;
+                    this.visitorColor = null;
+
+                    System.out.println("Left the game.");
+
+                } catch (Exception e) {
+                    System.out.println("Error leaving game: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Usage: leave");
+            }
+        }
+
+        // Resign
 
 
 
@@ -381,6 +407,8 @@ public class Client implements NotificationHandler {
             System.out.println(SET_TEXT_COLOR_BLUE + "join <ID> [WHITE|BLACK]" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "move <start position> <end position> <promotion piece (for pawns), default is null>" + SET_TEXT_COLOR_WHITE + " - move a piece");
             System.out.println(SET_TEXT_COLOR_BLUE + "observe <ID>" + SET_TEXT_COLOR_WHITE + " - a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "leave" + SET_TEXT_COLOR_WHITE + " - leave a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - forfeit a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "logout" + SET_TEXT_COLOR_WHITE + " - when you are done");
             System.out.println(SET_TEXT_COLOR_BLUE + "quit" + SET_TEXT_COLOR_WHITE + " - playing chess");
             System.out.println(SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " - with possible commands");
