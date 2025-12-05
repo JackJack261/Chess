@@ -416,6 +416,17 @@ public class Client implements NotificationHandler {
         // Convert row to 1-8
         int row = Character.getNumericValue(rowChar);
 
+
+        // Dang board is inverted, this should fix it
+
+        // DEBUG
+        System.out.println("DEBUG BEFORE: Row: " + row + ", Col: " + col);
+
+//        row = 9 - row;
+
+        System.out.println("DEBUG AFTER: Row: " + row + ", Col: " + col);
+
+
         if (col < 1 || col > 8 || row < 1 || row > 8) {
             throw new NumberFormatException("Coordinate out of bounds");
         }

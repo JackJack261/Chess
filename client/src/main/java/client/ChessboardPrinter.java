@@ -55,7 +55,7 @@ public class ChessboardPrinter {
         for (int row = 0; row < 8; row++) {
             // White perspective: 8, 7, ... 1
             // Black perspective: 1, 2, ... 8
-            int boardRow = isWhitePerspective ? row : (7 - row);
+            int boardRow = isWhitePerspective ? (7 - row) : row;
             int displayRow = isWhitePerspective ? (8 - row) : (row + 1);
 
             drawRow(board, boardRow, displayRow, isWhitePerspective);
