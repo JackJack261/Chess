@@ -383,6 +383,30 @@ public class Client implements NotificationHandler {
         }
 
         // Resign
+        else if (command.equals("resign")) {
+            if (args.length == 1) {
+                if (ws == null) {
+                    System.out.println("Error: You are not connected to a game.");
+                    return;
+                }
+
+                try {
+                    System.out.print("Are you sure you want to resign? (yes/no): ");
+                    String input = new Scanner(System.in).nextLine();
+
+                    if (input.equalsIgnoreCase("yes")) {
+                        ws.sendCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, currentGameID));
+                    } else {
+                        System.out.println("Resignation cancelled.");
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error resigning: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Usage: resign");
+            }
+        }
 
 
 

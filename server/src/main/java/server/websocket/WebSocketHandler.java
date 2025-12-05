@@ -11,6 +11,7 @@ import io.javalin.websocket.WsContext;
 import io.javalin.websocket.WsMessageContext;
 import models.AuthData;
 import models.GameData;
+import org.eclipse.jetty.server.Authentication;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import io.javalin.websocket.WsErrorContext;
@@ -44,9 +45,7 @@ public class WebSocketHandler {
 
         switch (command.getCommandType()) {
             // Connect
-            case CONNECT -> {
-                 handleConnect(ctx, command);
-            }
+            case CONNECT -> handleConnect(ctx, command);
 
             // Make Move
             case MAKE_MOVE -> {
@@ -55,11 +54,10 @@ public class WebSocketHandler {
             }
 
             // Leave
-            case LEAVE -> {
-                handleLeave(ctx, command);
-            }
+            case LEAVE -> handleLeave(ctx, command);
 
             // Resign
+            case RESIGN -> handleResign(ctx, command);
 
         }
     }
@@ -98,10 +96,6 @@ public class WebSocketHandler {
         String username = authDAO.getAuth(authToken).username();
         var gameData = gameDAO.getGameByID(command.getGameID());
         var game = gameData.game();
-
-        // 2. Validate: Is the game already over?
-        // (You might have a 'isGameOver' boolean in your GameData or check checkmate)
-        // if (gameData.isGameOver()) { ... error ... }
 
         // Is the player in the game
         ChessGame.TeamColor playerColor = null;
@@ -161,6 +155,29 @@ public class WebSocketHandler {
         String message = String.format("%s left the game", username);
         var notification = new NotificationMessage(message);
         connections.broadcast(gameID, new Gson().toJson(notification));
+    }
+
+    private void handleResign(WsContext ctx, UserGameCommand command) throws IOException, DataAccessException {
+        String authToken = command.getAuthToken();
+        String username = authDAO.getAuth(authToken).username();
+        GameData gameData = gameDAO.getGameByID(command.getGameID());
+        ChessGame game = gameData.game();
+
+        if (!username.equals(gameData.whiteUsername()) && !username.equals(gameData.blackUsername())) {
+            sendError(ctx, "Error: Observers cannot resign");
+            return;
+        }
+         if (game.isGameOver()) {
+             sendError(ctx, "Error: Game is already over");
+             return;
+         }
+         game.setGameOver(true);
+
+         gameDAO.updateGame(gameData.gameName(), gameData);
+
+         String message = String.format("%s Resigned the game", username);
+         var notification = new NotificationMessage(message);
+         connections.broadcast(command.getGameID(), new Gson().toJson(notification));
     }
 
     private void sendError(WsContext ctx, String msg) {

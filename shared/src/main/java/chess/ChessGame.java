@@ -15,6 +15,7 @@ public class ChessGame {
 
     private TeamColor team;
     private ChessBoard board;
+    private boolean isGameOver = false;
 
     private final java.util.Stack<MoveRecord> moveHistory = new java.util.Stack<>();
 
@@ -26,6 +27,13 @@ public class ChessGame {
         this.board.resetBoard();
     }
 
+    public void setGameOver(boolean gameOver) {
+        this.isGameOver = gameOver;
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
+    }
 
     private static class MoveRecord {
         ChessMove move;
@@ -135,6 +143,9 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        if (isGameOver) {
+            throw new InvalidMoveException("Game is over");
+        }
 
         Collection<ChessMove> legalMoves = validMoves(move.getStartPosition());
         if (!legalMoves.contains(move)) {
