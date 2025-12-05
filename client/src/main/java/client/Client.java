@@ -42,17 +42,21 @@ public class Client implements NotificationHandler {
         this.serverUrl = serverUrl;
     }
 
+    private void printPrompt() {
+        if (isLoggedIn) {
+            System.out.print("\n[LOGGED_IN] >>> ");
+        } else {
+            System.out.print("\n[LOGGED_OUT] >>> ");
+        }
+    }
+
 
     public void run() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("♕ Welcome to Chess. Type 'help' to get started.");
 
         while (true) {
-            if (isLoggedIn) {
-                System.out.print("[LOGGED_IN] >>> ");
-            } else {
-                System.out.print("[LOGGED_OUT] >>> ");
-            }
+            printPrompt();
 
             String line = scanner.nextLine();
             String[] args = line.split(" ");
@@ -426,17 +430,26 @@ public class Client implements NotificationHandler {
                 LoadGameMessage loadGame = (LoadGameMessage) message;
                 ChessGame game = loadGame.getGame();
 
+                System.out.println(ERASE_LINE + "\r");
+
                 boardPrinter.draw(game.getBoard(), this.visitorColor);
 
-                System.out.println("Received LOAD_GAME");
+//                printPrompt();
+
+                // Debug
+//                System.out.println("Received LOAD_GAME");
             }
             case ERROR -> {
                 ErrorMessage error = (ErrorMessage) message;
+                System.out.println();
                 System.out.println(SET_TEXT_COLOR_RED + "Error: " + error.getErrorMessage() + RESET_TEXT_COLOR);
+                printPrompt();
             }
             case NOTIFICATION -> {
                 NotificationMessage notification = (NotificationMessage) message;
+                System.out.println();
                 System.out.println(SET_TEXT_COLOR_BLUE + notification.getMessage() + RESET_TEXT_COLOR);
+                printPrompt();
             }
         }
     }

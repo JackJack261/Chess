@@ -97,6 +97,11 @@ public class ChessboardPrinter {
 
     private void printPiece(ChessPiece piece) {
 
+        if (piece == null) {
+            System.out.print("   ");
+            return;
+        }
+
         if (piece.getTeamColor().toString().equals("BLACK")) {
             // Black piece (Blue, as per instructions)
             System.out.print(SET_TEXT_COLOR_BLUE);
@@ -105,8 +110,17 @@ public class ChessboardPrinter {
             System.out.print(SET_TEXT_COLOR_RED);
         }
 
+        String symbol = switch (piece.getPieceType()) {
+            case KING -> "K";
+            case QUEEN -> "Q";
+            case BISHOP -> "B";
+            case KNIGHT -> "N";
+            case ROOK -> "R";
+            case PAWN -> "P";
+        };
+
         // Pad the piece to fill the square
-        System.out.printf(" %s ", piece);
+        System.out.printf(" %s ", symbol);
     }
 
     private void printBorderNumber(int displayRow) {

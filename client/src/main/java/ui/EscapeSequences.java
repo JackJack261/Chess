@@ -9,7 +9,11 @@ public class EscapeSequences {
     private static final String ANSI_ESCAPE = "\033";
 
     public static final String ERASE_SCREEN = UNICODE_ESCAPE + "[H" + UNICODE_ESCAPE + "[2J";
-    public static final String ERASE_LINE = UNICODE_ESCAPE + "[2K";
+//    public static final String ERASE_LINE = UNICODE_ESCAPE + "[2K";
+
+    // test erase line
+    // In EscapeSequences.java
+    public static final String ERASE_LINE = "\u001b[2K";
 
     public static final String SET_TEXT_BOLD = UNICODE_ESCAPE + "[1m";
     public static final String SET_TEXT_FAINT = UNICODE_ESCAPE + "[2m";
