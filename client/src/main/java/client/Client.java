@@ -294,7 +294,6 @@ public class Client implements NotificationHandler {
 
                     this.visitorColor = "WHITE";
                     this.currentGameID = gameNumber;
-                    serverFacade.joinGame(authToken, null, game.gameID());
 
                     try {
                         var wsCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID());

@@ -44,7 +44,7 @@ public class WebSocketHandler {
         switch (command.getCommandType()) {
             // Connect
             case CONNECT -> {
-                // handleConnect(ctx, command);
+                 handleConnect(ctx, command);
             }
 
             // Make Move
@@ -75,6 +75,8 @@ public class WebSocketHandler {
 
     private void handleConnect(WsContext ctx, UserGameCommand command) throws IOException, DataAccessException {
 
+        System.out.println("DEBUG: Executing handleConnect for game " + command.getGameID());
+
         AuthData auth = authDAO.getAuth(command.getAuthToken());
         String username = auth.username();
         int gameID = command.getGameID();
@@ -87,12 +89,12 @@ public class WebSocketHandler {
         GameData gameData = gameDAO.getGameByID(gameID);
 
         var loadGameMsg = new LoadGameMessage(gameData.game());
-         ctx.send(new Gson().toJson(loadGameMsg));
+        ctx.send(new Gson().toJson(loadGameMsg));
 
-         // Send Notification to everyone
-         String message = String.format("%s joined the game", username);
-         String notificationMsg = new NotificationMessage(message).toString();
-         connections.broadcast(command.getGameID(), notificationMsg);
+        // Send Notification to everyone
+        String message = String.format("%s joined the game", username);
+        String notificationMsg = new Gson().toJson(new NotificationMessage(message));
+        connections.broadcast(command.getGameID(), notificationMsg);
     }
 
     private void handleMakeMove(WsContext ctx, MakeMoveCommand command) throws IOException, DataAccessException {
@@ -112,7 +114,7 @@ public class WebSocketHandler {
         } else if (username.equals(gameData.blackUsername())) {
             playerColor = ChessGame.TeamColor.BLACK;
         } else {
-            // User is an observer, they cannot move!
+            // User is an observer, they cannot move
             sendError(ctx, "Error: Observers cannot make moves");
             return;
         }

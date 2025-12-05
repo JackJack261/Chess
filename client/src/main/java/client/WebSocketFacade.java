@@ -5,7 +5,7 @@ import jakarta.websocket.*;
 
 import com.google.gson.Gson;
 import websocket.commands.UserGameCommand;
-import websocket.messages.ServerMessage;
+import websocket.messages.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,7 +31,20 @@ public class WebSocketFacade extends Endpoint{
                 public void onMessage(String message) {
                     ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
 
-                    notificationHandler.notify(serverMessage);
+                    switch (serverMessage.getServerMessageType()) {
+                        case LOAD_GAME -> {
+                            LoadGameMessage loadGame = new Gson().fromJson(message, LoadGameMessage.class);
+                            notificationHandler.notify(loadGame);
+                        }
+                        case ERROR -> {
+                            ErrorMessage error = new Gson().fromJson(message, ErrorMessage.class);
+                            notificationHandler.notify(error);
+                        }
+                        case NOTIFICATION -> {
+                            NotificationMessage notifyMessage = new Gson().fromJson(message, NotificationMessage.class);
+                            notificationHandler.notify(notifyMessage);
+                        }
+                    }
                 }
             });
 
