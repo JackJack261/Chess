@@ -88,7 +88,7 @@ public class WebSocketHandler {
         // Send Notification to everyone
         String message = String.format("%s joined the game", username);
         String notificationMsg = new Gson().toJson(new NotificationMessage(message));
-        connections.broadcast(command.getGameID(), notificationMsg);
+        connections.broadcast(command.getGameID(), notificationMsg, ctx);
     }
 
     private void handleMakeMove(WsContext ctx, MakeMoveCommand command) throws IOException, DataAccessException {
@@ -120,13 +120,13 @@ public class WebSocketHandler {
 
             // Broadcast to each player
             var loadGameMsg = new LoadGameMessage(game);
-            connections.broadcast(command.getGameID(), new Gson().toJson(loadGameMsg));
+            connections.broadcast(command.getGameID(), new Gson().toJson(loadGameMsg), null);
 
             // Broadcast to observers
             String message = String.format("%s moved %s", username, command.getMove().toString());
             var notificationMsg = new NotificationMessage(message);
 
-            connections.broadcast(command.getGameID(), new Gson().toJson(notificationMsg));
+            connections.broadcast(command.getGameID(), new Gson().toJson(notificationMsg), ctx);
 
         } catch (Exception e) {
             sendError(ctx, "Error: " + e.getMessage());
@@ -154,7 +154,7 @@ public class WebSocketHandler {
 
         String message = String.format("%s left the game", username);
         var notification = new NotificationMessage(message);
-        connections.broadcast(gameID, new Gson().toJson(notification));
+        connections.broadcast(gameID, new Gson().toJson(notification), ctx);
     }
 
     private void handleResign(WsContext ctx, UserGameCommand command) throws IOException, DataAccessException {
@@ -177,7 +177,7 @@ public class WebSocketHandler {
 
          String message = String.format("%s Resigned the game", username);
          var notification = new NotificationMessage(message);
-         connections.broadcast(command.getGameID(), new Gson().toJson(notification));
+         connections.broadcast(command.getGameID(), new Gson().toJson(notification), ctx);
     }
 
     private void sendError(WsContext ctx, String msg) {

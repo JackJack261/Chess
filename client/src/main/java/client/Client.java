@@ -498,7 +498,7 @@ public class Client implements NotificationHandler {
 
                 boardPrinter.draw(game.getBoard(), this.visitorColor);
 
-//                printPrompt();
+                printPrompt();
 
                 // Debug
 //                System.out.println("Received LOAD_GAME");
@@ -506,13 +506,13 @@ public class Client implements NotificationHandler {
             case ERROR -> {
                 ErrorMessage error = (ErrorMessage) message;
                 System.out.println();
-                System.out.println(SET_TEXT_COLOR_RED + "Error: " + error.getErrorMessage() + RESET_TEXT_COLOR);
+                System.out.println(SET_TEXT_COLOR_RED + "Error: " + error.getErrorMessage() + SET_TEXT_COLOR_WHITE);
                 printPrompt();
             }
             case NOTIFICATION -> {
                 NotificationMessage notification = (NotificationMessage) message;
                 System.out.println();
-                System.out.println(SET_TEXT_COLOR_BLUE + notification.getMessage() + RESET_TEXT_COLOR);
+                System.out.println(SET_TEXT_COLOR_BLUE + notification.getMessage() + SET_TEXT_COLOR_WHITE);
                 printPrompt();
             }
         }

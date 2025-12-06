@@ -256,6 +256,7 @@ public class ChessGame {
             }
         }
 
+        isGameOver = true;
         return true;
     }
 
@@ -291,6 +292,7 @@ public class ChessGame {
                 }
             }
         }
+        isGameOver = true;
         return true;
     }
 

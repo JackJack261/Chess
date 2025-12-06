@@ -23,12 +23,22 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcast(Integer gameID, String message) {
+    public void broadcast(Integer gameID, String message, WsContext excludeConnection) {
         var gameConnections = connections.get(gameID);
+//        if (gameConnections != null) {
+//            for (var ctx : gameConnections) {
+//                if (ctx.session.isOpen()) {
+//                    ctx.send(message);
+//                }
+//            }
+//        }
+
         if (gameConnections != null) {
-            for (var ctx : gameConnections) {
-                if (ctx.session.isOpen()) {
-                    ctx.send(message);
+            for (var c : gameConnections) {
+                if (c.session.isOpen()) {
+                    if (excludeConnection == null || !c.sessionId().equals(excludeConnection.sessionId())) {
+                        c.send(message);
+                    }
                 }
             }
         }
