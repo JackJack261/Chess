@@ -72,15 +72,24 @@ public class WebSocketHandler {
 //        System.out.println("DEBUG: Executing handleConnect for game " + command.getGameID());
 
         AuthData auth = authDAO.getAuth(command.getAuthToken());
+
+        if (auth == null) {
+            sendError(ctx, "Error: Unauthorized");
+            return;
+        }
+
         String username = auth.username();
         int gameID = command.getGameID();
 
-        // Might need to send ErrorMessage if we need to check for invalid auth token at this point
-
-        connections.add(gameID, ctx);
-
         // Send Load Game message to the ROOT client
         GameData gameData = gameDAO.getGameByID(gameID);
+
+        if (gameData == null) {
+            sendError(ctx, "Error: Game ID Does Not Exist.");
+            return;
+        }
+
+        connections.add(gameID, ctx);
 
         var loadGameMsg = new LoadGameMessage(gameData.game());
         ctx.send(new Gson().toJson(loadGameMsg));
@@ -93,7 +102,16 @@ public class WebSocketHandler {
 
     private void handleMakeMove(WsContext ctx, MakeMoveCommand command) throws IOException, DataAccessException {
         String authToken = command.getAuthToken();
+
+        AuthData auth = authDAO.getAuth(authToken);
+
+        if (auth == null) {
+            sendError(ctx, "Error: Unauthorized");
+            return;
+        }
+
         String username = authDAO.getAuth(authToken).username();
+
         var gameData = gameDAO.getGameByID(command.getGameID());
         var game = gameData.game();
 
@@ -106,6 +124,11 @@ public class WebSocketHandler {
         } else {
             // User is an observer, they cannot move
             sendError(ctx, "Error: Observers cannot make moves");
+            return;
+        }
+
+        if (game.getTeamTurn() != playerColor) {
+            sendError(ctx, "Error: It is not your turn");
             return;
         }
 
@@ -177,7 +200,7 @@ public class WebSocketHandler {
 
          String message = String.format("%s Resigned the game", username);
          var notification = new NotificationMessage(message);
-         connections.broadcast(command.getGameID(), new Gson().toJson(notification), ctx);
+         connections.broadcast(command.getGameID(), new Gson().toJson(notification), null);
     }
 
     private void sendError(WsContext ctx, String msg) {

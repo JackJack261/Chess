@@ -1,7 +1,12 @@
 package client;
 import chess.ChessBoard;
+import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static ui.EscapeSequences.*;
 
@@ -24,14 +29,36 @@ public class ChessboardPrinter {
     private static final String[] COLS_WHITE = {" a ", " b ", " c ", " d ", " e ", " f ", " g ", " h "};
     private static final String[] COLS_BLACK = {" h ", " g ", " f ", " e ", " d ", " c ", " b ", " a "};
 
+//    public void draw(ChessBoard board, String perspective) {
+//        boolean isWhitePerspective = perspective.equals("WHITE");
+//
+//        drawHeader(isWhitePerspective);
+//        drawRows(board, isWhitePerspective);
+//        drawHeader(isWhitePerspective);
+//
+//        // Reset all formatting
+//        System.out.println(RESET_BG_COLOR);
+//    }
+
     public void draw(ChessBoard board, String perspective) {
+        highlightDraw(board, perspective, null, null);
+    }
+
+    public void highlightDraw(ChessBoard board, String perspective, ChessPosition startPosition, Collection<ChessMove> validMoves) {
         boolean isWhitePerspective = perspective.equals("WHITE");
 
+        // Convert moves to a Set of positions for faster lookup
+        Set<ChessPosition> highlightTargets = new HashSet<>();
+        if (validMoves != null) {
+            for (ChessMove move : validMoves) {
+                highlightTargets.add(move.getEndPosition());
+            }
+        }
+
         drawHeader(isWhitePerspective);
-        drawRows(board, isWhitePerspective);
+        drawRows(board, isWhitePerspective, startPosition, highlightTargets); // Pass info down
         drawHeader(isWhitePerspective);
 
-        // Reset all formatting
         System.out.println(RESET_BG_COLOR);
     }
 
@@ -51,18 +78,21 @@ public class ChessboardPrinter {
         System.out.print(SET_TEXT_COLOR_WHITE);
     }
 
-    private void drawRows(ChessBoard board, boolean isWhitePerspective) {
+    private void drawRows(ChessBoard board, boolean isWhitePerspective, ChessPosition startPosition, Set<ChessPosition> targets) {
         for (int row = 0; row < 8; row++) {
             // White perspective: 8, 7, ... 1
             // Black perspective: 1, 2, ... 8
             int boardRow = isWhitePerspective ? (7 - row) : row;
             int displayRow = isWhitePerspective ? (8 - row) : (row + 1);
 
-            drawRow(board, boardRow, displayRow, isWhitePerspective);
+//            drawRow(board, boardRow, displayRow, isWhitePerspective);
+            // new
+            drawRow(board, boardRow, displayRow, isWhitePerspective, startPosition, targets);
         }
     }
 
-    private void drawRow(ChessBoard board, int boardRow, int displayRow, boolean isWhitePerspective) {
+    private void drawRow(ChessBoard board, int boardRow, int displayRow, boolean isWhitePerspective,
+                         ChessPosition startPosition, Set<ChessPosition> targets) {
         // Draw left row number
         printBorderNumber(displayRow);
 
@@ -72,12 +102,25 @@ public class ChessboardPrinter {
             // Black perspective: h, g, ... a (7-0)
             int boardCol = isWhitePerspective ? col : (7 - col);
 
-            // Set square color
+            ChessPosition currentPos = new ChessPosition(boardRow + 1, boardCol + 1);
             boolean isLightSquare = (displayRow + boardCol) % 2 != 0;
+
+
+            if (startPosition != null && currentPos.equals(startPosition)) {
+                System.out.print(SET_BG_COLOR_YELLOW);
+            } else if (targets != null && targets.contains(currentPos)) {
+                if (isLightSquare) {
+                    System.out.print(SET_BG_COLOR_DARK_GREEN);
+                } else {
+                    System.out.print(SET_BG_COLOR_GREEN);
+                }
+            } else {
+            // Set square color
             if (isLightSquare) {
                 System.out.print(SET_BG_COLOR_DARK_GREY);
             } else {
                 System.out.print(SET_BG_COLOR_LIGHT_GREY);
+            }
             }
 
             // Get and print the piece

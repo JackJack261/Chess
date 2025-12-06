@@ -36,6 +36,8 @@ public class Client implements NotificationHandler {
     private String visitorColor = "WHITE";
     private int currentGameID;
 
+    private ChessGame currentGame;
+
     public Client(String serverUrl) {
         this.serverFacade = new ServerFacade(serverUrl);
         this.boardPrinter = new ChessboardPrinter();
@@ -408,7 +410,44 @@ public class Client implements NotificationHandler {
             }
         }
 
+        // Redraw
+        else if (command.equals("redraw")) {
+            if (currentGame != null) {
+                boardPrinter.draw(currentGame.getBoard(), this.visitorColor);
+            } else {
+                System.out.println("No active game to redraw.");
+            }
+        }
 
+
+        // Highlight
+        else if (command.equals("highlight")) {
+            if (args.length == 2) {
+                try {
+                    ChessPosition startPos = convertToPosition(args[1]);
+
+                    if (currentGame == null) {
+                        System.out.println("No active game.");
+                        return;
+                    }
+
+                    var validMoves = currentGame.validMoves(startPos);
+
+                    if (validMoves == null || validMoves.isEmpty()) {
+                        System.out.println("No legal moves for that piece.");
+                    } else {
+//                         boardPrinter.highlightDraw(currentGame.getBoard(), this.visitorColor, validMoves);
+                        boardPrinter.highlightDraw(currentGame.getBoard(), this.visitorColor, startPos, validMoves);
+                        System.out.println("Highlighting moves for " + args[1] + "...");
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Usage: highlight <POSITION> (e.g., highlight e2)");
+            }
+        }
 
         // Quit
         else if (command.equals("quit")) {
@@ -430,6 +469,8 @@ public class Client implements NotificationHandler {
             System.out.println(SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_WHITE + " - games");
             System.out.println(SET_TEXT_COLOR_BLUE + "join <ID> [WHITE|BLACK]" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "move <start position> <end position> <promotion piece (for pawns), default is null>" + SET_TEXT_COLOR_WHITE + " - move a piece");
+            System.out.println(SET_TEXT_COLOR_BLUE + "highlight <chess position>" + SET_TEXT_COLOR_WHITE + " - show legal moves");
+            System.out.println(SET_TEXT_COLOR_BLUE + "redraw" + SET_TEXT_COLOR_WHITE + " - redraw the chess board");
             System.out.println(SET_TEXT_COLOR_BLUE + "observe <ID>" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "leave" + SET_TEXT_COLOR_WHITE + " - leave a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - forfeit a game");
@@ -495,6 +536,8 @@ public class Client implements NotificationHandler {
                 ChessGame game = loadGame.getGame();
 
                 System.out.println(ERASE_LINE + "\r");
+
+                this.currentGame = loadGame.getGame();
 
                 boardPrinter.draw(game.getBoard(), this.visitorColor);
 
