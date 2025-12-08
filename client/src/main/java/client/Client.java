@@ -28,6 +28,7 @@ public class Client implements NotificationHandler {
 
     private final ServerFacade serverFacade;
     private boolean isLoggedIn = false;
+    private boolean isInGame = false;
     private String authToken = null;
     private List<GameInfo> displayedGames;
     private final ChessboardPrinter boardPrinter;
@@ -65,7 +66,9 @@ public class Client implements NotificationHandler {
             String command = args.length > 0 ? args[0].toLowerCase() : "help";
 
             try {
-                if (isLoggedIn) {
+                if (isInGame) {
+                    handleInGameCommands(command, args);
+                } else if (isLoggedIn) {
                     handlePostloginCommands(command, args);
                 } else {
                     handlePreloginCommands(command, args);
@@ -151,6 +154,152 @@ public class Client implements NotificationHandler {
 
 
     }
+
+    private void handleInGameCommands(String command, String[] args) throws Exception {
+        System.out.println("In game command: " + command);
+
+        // Make Move
+        if (command.equals("move")) {
+            if (args.length >= 3) {
+                try {
+                    String startStr = args[1];
+                    String endStr = args[2];
+                    String promotionPieceStr = (args.length > 3) ? args[3] : null;
+
+                    ChessPosition startPos = convertToPosition(startStr);
+                    ChessPosition endPos = convertToPosition(endStr);
+                    ChessPiece.PieceType promotionPiece = convertPromotionPiece(promotionPieceStr);
+
+                    ChessMove move = new ChessMove(startPos, endPos, promotionPiece);
+
+                    if (ws == null) {
+                        System.out.println("Error: You are not connected to a game.");
+                        return;
+                    }
+
+                    ws.sendCommand(new MakeMoveCommand(authToken, currentGameID, move));
+
+                    System.out.println("Sending move: " + startStr + " to " + endStr);
+
+
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid coordinates. Usage: move <START> <END> [PROMOTION]");
+                    System.out.println("Example: move e2 e4");
+                } catch (Exception e) {
+                    System.out.println("Error processing move: " + e.getMessage());
+                }
+            }
+
+            else {
+                System.out.println("Usage: move <START> <END> [PROMOTION_PIECE]");
+            }
+        }
+
+        // Leave
+        else if (command.equals("leave")) {
+            if (args.length == 1) {
+                if (ws == null) {
+                    System.out.println("Error: You are not connected to a game.");
+                    return;
+                }
+
+                try {
+                    ws.sendCommand(new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, currentGameID));
+
+                    ws.session.close();
+                    ws = null;
+
+                    this.currentGameID = -1;
+                    this.visitorColor = null;
+                    this.isInGame = false;
+
+                    System.out.println("Left the game.");
+
+                } catch (Exception e) {
+                    System.out.println("Error leaving game: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Usage: leave");
+            }
+        }
+
+        // Resign
+        else if (command.equals("resign")) {
+            if (args.length == 1) {
+                if (ws == null) {
+                    System.out.println("Error: You are not connected to a game.");
+                    return;
+                }
+
+                try {
+                    System.out.print("Are you sure you want to resign? (yes/no): ");
+                    String input = new Scanner(System.in).nextLine();
+
+                    if (input.equalsIgnoreCase("yes")) {
+                        ws.sendCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, currentGameID));
+                        this.isInGame = false;
+                    } else {
+                        System.out.println("Resignation cancelled.");
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error resigning: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Usage: resign");
+            }
+        }
+
+        // Redraw
+        else if (command.equals("redraw")) {
+            if (currentGame != null) {
+                boardPrinter.draw(currentGame.getBoard(), this.visitorColor);
+            } else {
+                System.out.println("No active game to redraw.");
+            }
+        }
+
+        // Highlight
+        else if (command.equals("highlight")) {
+            if (args.length == 2) {
+                try {
+                    ChessPosition startPos = convertToPosition(args[1]);
+
+                    if (currentGame == null) {
+                        System.out.println("No active game.");
+                        return;
+                    }
+
+                    var validMoves = currentGame.validMoves(startPos);
+
+                    if (validMoves == null || validMoves.isEmpty()) {
+                        System.out.println("No legal moves for that piece.");
+                    } else {
+//                         boardPrinter.highlightDraw(currentGame.getBoard(), this.visitorColor, validMoves);
+                        boardPrinter.highlightDraw(currentGame.getBoard(), this.visitorColor, startPos, validMoves);
+                        System.out.println("Highlighting moves for " + args[1] + "...");
+                    }
+
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Usage: highlight <POSITION> (e.g., highlight e2)");
+            }
+        }
+
+        // Help
+        else {
+            System.out.println(SET_TEXT_COLOR_BLUE + "move <start position> <end position> <promotion piece (for pawns), default is null>" + SET_TEXT_COLOR_WHITE + " - move a piece");
+            System.out.println(SET_TEXT_COLOR_BLUE + "highlight <chess position>" + SET_TEXT_COLOR_WHITE + " - show legal moves");
+            System.out.println(SET_TEXT_COLOR_BLUE + "redraw" + SET_TEXT_COLOR_WHITE + " - redraw the chess board");
+            System.out.println(SET_TEXT_COLOR_BLUE + "leave" + SET_TEXT_COLOR_WHITE + " - leave a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - forfeit a game");
+            System.out.println(SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " - with possible commands");
+
+        }
+    }
+
 
     private void handlePostloginCommands(String command, String[] args) throws Exception {
         System.out.println("Post-login command: " + command);
@@ -253,6 +402,7 @@ public class Client implements NotificationHandler {
 
                     serverFacade.joinGame(authToken, playerColor, game.gameID());
                     System.out.println("Joined game as " + playerColor + ".");
+                    this.isInGame = true;
 
                     try {
                         var wsCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID());
@@ -260,8 +410,6 @@ public class Client implements NotificationHandler {
                     } catch (Exception e) {
                         System.out.println("Failed to send CONNECT command: " + e.getMessage());
                     }
-
-//                    drawChessBoard(playerColor);
 
                 } catch (NumberFormatException e) {
                     System.out.println("Error: Game ID must be a number.");
@@ -301,6 +449,7 @@ public class Client implements NotificationHandler {
 
                     this.visitorColor = "WHITE";
                     this.currentGameID = gameNumber;
+                    this.isInGame = true;
 
                     try {
                         var wsCommand = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, game.gameID());
@@ -316,136 +465,6 @@ public class Client implements NotificationHandler {
                 }
             } else {
                 System.out.println("Usage: observe game <ID>");
-            }
-        }
-
-
-        else if (command.equals("move")) {
-            if (args.length >= 3) {
-                try {
-                    String startStr = args[1];
-                    String endStr = args[2];
-                    String promotionPieceStr = (args.length > 3) ? args[3] : null;
-
-                    ChessPosition startPos = convertToPosition(startStr);
-                    ChessPosition endPos = convertToPosition(endStr);
-                    ChessPiece.PieceType promotionPiece = convertPromotionPiece(promotionPieceStr);
-
-                    ChessMove move = new ChessMove(startPos, endPos, promotionPiece);
-
-                    if (ws == null) {
-                        System.out.println("Error: You are not connected to a game.");
-                        return;
-                    }
-
-                    ws.sendCommand(new MakeMoveCommand(authToken, currentGameID, move));
-
-                    System.out.println("Sending move: " + startStr + " to " + endStr);
-
-
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid coordinates. Usage: move <START> <END> [PROMOTION]");
-                    System.out.println("Example: move e2 e4");
-                } catch (Exception e) {
-                    System.out.println("Error processing move: " + e.getMessage());
-                }
-            }
-
-            else {
-                System.out.println("Usage: move <START> <END> [PROMOTION_PIECE]");
-            }
-        }
-
-
-        // Leave
-        else if (command.equals("leave")) {
-            if (args.length == 1) {
-                if (ws == null) {
-                    System.out.println("Error: You are not connected to a game.");
-                    return;
-                }
-
-                try {
-                    ws.sendCommand(new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, currentGameID));
-
-                    ws.session.close();
-                    ws = null;
-
-                    this.currentGameID = -1;
-                    this.visitorColor = null;
-
-                    System.out.println("Left the game.");
-
-                } catch (Exception e) {
-                    System.out.println("Error leaving game: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Usage: leave");
-            }
-        }
-
-        // Resign
-        else if (command.equals("resign")) {
-            if (args.length == 1) {
-                if (ws == null) {
-                    System.out.println("Error: You are not connected to a game.");
-                    return;
-                }
-
-                try {
-                    System.out.print("Are you sure you want to resign? (yes/no): ");
-                    String input = new Scanner(System.in).nextLine();
-
-                    if (input.equalsIgnoreCase("yes")) {
-                        ws.sendCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, currentGameID));
-                    } else {
-                        System.out.println("Resignation cancelled.");
-                    }
-
-                } catch (Exception e) {
-                    System.out.println("Error resigning: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Usage: resign");
-            }
-        }
-
-        // Redraw
-        else if (command.equals("redraw")) {
-            if (currentGame != null) {
-                boardPrinter.draw(currentGame.getBoard(), this.visitorColor);
-            } else {
-                System.out.println("No active game to redraw.");
-            }
-        }
-
-
-        // Highlight
-        else if (command.equals("highlight")) {
-            if (args.length == 2) {
-                try {
-                    ChessPosition startPos = convertToPosition(args[1]);
-
-                    if (currentGame == null) {
-                        System.out.println("No active game.");
-                        return;
-                    }
-
-                    var validMoves = currentGame.validMoves(startPos);
-
-                    if (validMoves == null || validMoves.isEmpty()) {
-                        System.out.println("No legal moves for that piece.");
-                    } else {
-//                         boardPrinter.highlightDraw(currentGame.getBoard(), this.visitorColor, validMoves);
-                        boardPrinter.highlightDraw(currentGame.getBoard(), this.visitorColor, startPos, validMoves);
-                        System.out.println("Highlighting moves for " + args[1] + "...");
-                    }
-
-                } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Usage: highlight <POSITION> (e.g., highlight e2)");
             }
         }
 
@@ -468,12 +487,7 @@ public class Client implements NotificationHandler {
             System.out.println(SET_TEXT_COLOR_BLUE + "create <NAME>" + SET_TEXT_COLOR_WHITE + " - a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "list" + SET_TEXT_COLOR_WHITE + " - games");
             System.out.println(SET_TEXT_COLOR_BLUE + "join <ID> [WHITE|BLACK]" + SET_TEXT_COLOR_WHITE + " - a game");
-            System.out.println(SET_TEXT_COLOR_BLUE + "move <start position> <end position> <promotion piece (for pawns), default is null>" + SET_TEXT_COLOR_WHITE + " - move a piece");
-            System.out.println(SET_TEXT_COLOR_BLUE + "highlight <chess position>" + SET_TEXT_COLOR_WHITE + " - show legal moves");
-            System.out.println(SET_TEXT_COLOR_BLUE + "redraw" + SET_TEXT_COLOR_WHITE + " - redraw the chess board");
             System.out.println(SET_TEXT_COLOR_BLUE + "observe <ID>" + SET_TEXT_COLOR_WHITE + " - a game");
-            System.out.println(SET_TEXT_COLOR_BLUE + "leave" + SET_TEXT_COLOR_WHITE + " - leave a game");
-            System.out.println(SET_TEXT_COLOR_BLUE + "resign" + SET_TEXT_COLOR_WHITE + " - forfeit a game");
             System.out.println(SET_TEXT_COLOR_BLUE + "logout" + SET_TEXT_COLOR_WHITE + " - when you are done");
             System.out.println(SET_TEXT_COLOR_BLUE + "quit" + SET_TEXT_COLOR_WHITE + " - playing chess");
             System.out.println(SET_TEXT_COLOR_BLUE + "help" + SET_TEXT_COLOR_WHITE + " - with possible commands");
