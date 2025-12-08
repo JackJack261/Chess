@@ -74,7 +74,7 @@ public class WebSocketHandler {
         AuthData auth = authDAO.getAuth(command.getAuthToken());
 
         if (auth == null) {
-            sendError(ctx, "Error: Unauthorized");
+            sendError(ctx, "Unauthorized");
             return;
         }
 
@@ -85,7 +85,7 @@ public class WebSocketHandler {
         GameData gameData = gameDAO.getGameByID(gameID);
 
         if (gameData == null) {
-            sendError(ctx, "Error: Game ID Does Not Exist.");
+            sendError(ctx, "Game ID Does Not Exist.");
             return;
         }
 
@@ -95,7 +95,15 @@ public class WebSocketHandler {
         ctx.send(new Gson().toJson(loadGameMsg));
 
         // Send Notification to everyone
-        String message = String.format("%s joined the game", username);
+
+        String message;
+        if (username.equals(gameData.whiteUsername())) {
+            message = String.format("%s joined the game as WHITE", username);
+        } else if (username.equals(gameData.blackUsername())) {
+            message = String.format("%s joined the game as BLACK", username);
+        } else {
+            message = String.format("%s joined the game as an observer", username);
+        }
         String notificationMsg = new Gson().toJson(new NotificationMessage(message));
         connections.broadcast(command.getGameID(), notificationMsg, ctx);
     }
@@ -106,14 +114,25 @@ public class WebSocketHandler {
         AuthData auth = authDAO.getAuth(authToken);
 
         if (auth == null) {
-            sendError(ctx, "Error: Unauthorized");
+            sendError(ctx, "Unauthorized");
             return;
         }
 
         String username = authDAO.getAuth(authToken).username();
 
         var gameData = gameDAO.getGameByID(command.getGameID());
+
+        if (gameData == null) {
+            sendError(ctx, "Game ID Does Not Exist.");
+            return;
+        }
+
         var game = gameData.game();
+
+        if (game.isGameOver()) {
+            sendError(ctx, "Game is already over");
+            return;
+        }
 
         // Is the player in the game
         ChessGame.TeamColor playerColor = null;
@@ -123,12 +142,12 @@ public class WebSocketHandler {
             playerColor = ChessGame.TeamColor.BLACK;
         } else {
             // User is an observer, they cannot move
-            sendError(ctx, "Error: Observers cannot make moves");
+            sendError(ctx, "Observers cannot make moves");
             return;
         }
 
         if (game.getTeamTurn() != playerColor) {
-            sendError(ctx, "Error: It is not your turn");
+            sendError(ctx, "It is not your turn");
             return;
         }
 
@@ -145,14 +164,41 @@ public class WebSocketHandler {
             var loadGameMsg = new LoadGameMessage(game);
             connections.broadcast(command.getGameID(), new Gson().toJson(loadGameMsg), null);
 
-            // Broadcast to observers
+            // Broadcast notification (sender excluded)
             String message = String.format("%s moved %s", username, command.getMove().toString());
             var notificationMsg = new NotificationMessage(message);
-
             connections.broadcast(command.getGameID(), new Gson().toJson(notificationMsg), ctx);
 
+            String opponentUsername = (playerColor == ChessGame.TeamColor.WHITE) ? gameData.blackUsername() : gameData.whiteUsername();
+
+            // Checkmate
+            if (game.isInCheckmate(game.getTeamTurn())) {
+                String msg = String.format("%s is in CHECKMATE", opponentUsername);
+                var notification = new NotificationMessage(msg);
+                connections.broadcast(command.getGameID(), new Gson().toJson(notification), null);
+
+                game.setGameOver(true);
+                gameDAO.updateGame(gameData.gameName(), gameData);
+            }
+
+            // Check
+            else if (game.isInCheck(game.getTeamTurn())) {
+                String msg = String.format("%s is in CHECK", opponentUsername);
+                var notification = new NotificationMessage(msg);
+                connections.broadcast(command.getGameID(), new Gson().toJson(notification), null);
+            }
+
+            // stalemate
+            else if (game.isInStalemate(game.getTeamTurn())) {
+                String msg = String.format("%s is in STALEMATE", opponentUsername);
+                var notification = new NotificationMessage(msg);
+                connections.broadcast(command.getGameID(), new Gson().toJson(notification), null);
+
+                game.setGameOver(true);
+                gameDAO.updateGame(gameData.gameName(), gameData);
+            }
         } catch (Exception e) {
-            sendError(ctx, "Error: " + e.getMessage());
+            sendError(ctx, e.getMessage());
         }
     }
 
@@ -187,11 +233,11 @@ public class WebSocketHandler {
         ChessGame game = gameData.game();
 
         if (!username.equals(gameData.whiteUsername()) && !username.equals(gameData.blackUsername())) {
-            sendError(ctx, "Error: Observers cannot resign");
+            sendError(ctx, "Observers cannot resign");
             return;
         }
          if (game.isGameOver()) {
-             sendError(ctx, "Error: Game is already over");
+             sendError(ctx, "Game is already over");
              return;
          }
          game.setGameOver(true);

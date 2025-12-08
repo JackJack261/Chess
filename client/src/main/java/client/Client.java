@@ -249,7 +249,7 @@ public class Client implements NotificationHandler {
                     }
 
                     this.visitorColor = playerColor;
-                    this.currentGameID = gameNumber;
+                    this.currentGameID = game.gameID();
 
                     serverFacade.joinGame(authToken, playerColor, game.gameID());
                     System.out.println("Joined game as " + playerColor + ".");
